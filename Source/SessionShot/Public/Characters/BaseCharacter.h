@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "InputActionValue.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
@@ -13,6 +14,8 @@ class SESSIONSHOT_API ABaseCharacter : public ACharacter
 
 public:
 	ABaseCharacter();
+
+	void AddMovement(const FInputActionValue& Value);
 
 protected:
 	virtual void BeginPlay() override;
