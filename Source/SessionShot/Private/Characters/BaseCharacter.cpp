@@ -30,7 +30,16 @@ void ABaseCharacter::AddMovement(const FInputActionValue& Value)
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "Player");
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
+}
+
+void ABaseCharacter::Attack()
+{
+	ServerAttack();
+}
+
+void ABaseCharacter::ServerAttack_Implementation()
+{
+   
 }

@@ -26,6 +26,8 @@ void AMainPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(InputActions->Movement, ETriggerEvent::Triggered, this, &AMainPlayerController::AddMovementInput);
 
 	EnhancedInputComponent->BindAction(InputActions->Jump, ETriggerEvent::Triggered, this, &AMainPlayerController::Jump);
+
+	EnhancedInputComponent->BindAction(InputActions->Attack, ETriggerEvent::Started, this, &AMainPlayerController::Attack);
 }
 
 void AMainPlayerController::OnPossess(APawn* aPawn)
@@ -42,7 +44,6 @@ ABaseCharacter* AMainPlayerController::GetPossessedCharacter() const
 
 void AMainPlayerController::AddControlInput(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, "PC");
 	FVector2D ControlVector = Value.Get<FVector2D>();
 
 	AddPitchInput(ControlVector.Y);
@@ -56,6 +57,13 @@ void AMainPlayerController::AddMovementInput(const FInputActionValue& Value)
 	FVector2D ControlVector = Value.Get<FVector2D>();
 
 	GetPossessedCharacter()->AddMovement(Value);
+}
+
+void AMainPlayerController::Attack(const FInputActionValue& Value)
+{
+	if (!GetPossessedCharacter()) return;
+
+	GetPossessedCharacter()->Attack();
 }
 
 void AMainPlayerController::Jump(const FInputActionValue& Value)
