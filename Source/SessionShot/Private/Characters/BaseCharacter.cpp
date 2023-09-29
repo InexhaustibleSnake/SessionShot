@@ -3,10 +3,13 @@
 #include "Characters/BaseCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
+#include "Characters/Components/Attack/MeleeAttackComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	MeleeAttackComponent = CreateDefaultSubobject<UMeleeAttackComponent>("MeleeAttackComponent");
 
 	SetReplicates(true);
 }
@@ -36,10 +39,10 @@ void ABaseCharacter::AddMovement(const FInputActionValue& Value)
 
 void ABaseCharacter::Attack()
 {
-	ServerAttack();
+	MeleeAttackComponent->Attack();
 }
 
-void ABaseCharacter::ServerAttack_Implementation()
+void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)
 {
-   
+	PlayAnimMontage(AnimMontage);
 }

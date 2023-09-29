@@ -11,7 +11,5 @@ class SESSIONSHOT_API ACharacterKallari : public ABaseCharacter
 {
 	GENERATED_BODY()
 	
-protected:
-	virtual void ServerAttack_Implementation() override;
 
 };
