@@ -4,12 +4,14 @@
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
 #include "Characters/Components/Attack/MeleeAttackComponent.h"
+#include "Characters/Components/HealthComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	MeleeAttackComponent = CreateDefaultSubobject<UMeleeAttackComponent>("MeleeAttackComponent");
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
 	SetReplicates(true);
 }

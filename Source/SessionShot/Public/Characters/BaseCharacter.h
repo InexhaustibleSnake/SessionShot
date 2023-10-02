@@ -8,6 +8,7 @@
 #include "BaseCharacter.generated.h"
 
 class UMeleeAttackComponent;
+class UHealthComponent;
 
 UCLASS()
 class SESSIONSHOT_API ABaseCharacter : public ACharacter
@@ -30,4 +31,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UMeleeAttackComponent* MeleeAttackComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	UHealthComponent* HealthComponent;
 };

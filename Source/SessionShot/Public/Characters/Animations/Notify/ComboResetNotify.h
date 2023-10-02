@@ -4,20 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AttackEndNotify.generated.h"
+#include "ComboResetNotify.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnDelegateSignature, bool);
+DECLARE_MULTICAST_DELEGATE(FOnNotifyBroadcast);
 
 UCLASS()
-class SESSIONSHOT_API UAttackEndNotify : public UAnimNotify
+class SESSIONSHOT_API UComboResetNotify : public UAnimNotify
 {
 	GENERATED_BODY()
-	
+
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool Attacks = false;
-
-	FOnDelegateSignature OnNotified;
+	FOnNotifyBroadcast OnNotifyBroadcast;
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/Components/Attack/BaseAttackComponent.h"
+#include "Characters/Animations/Notify/AnimUtils.h"
 #include "MeleeAttackComponent.generated.h"
 
 class ABaseCharacter;
@@ -57,7 +58,9 @@ protected:
 
 	void InitAnimations();
 
-	void OnStateChanged(bool Attacking);
+	void OnStateChanged(EAttackStateTypes StateType);
+
+	void ResetCurrentAttackIndex() { CurrentAttackIndex = 0; }
 
 	FAttackData CurrentAttackData;
 

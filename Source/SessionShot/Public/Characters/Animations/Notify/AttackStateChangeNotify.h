@@ -4,20 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AttackEndNotify.generated.h"
+#include "AnimUtils.h"
+#include "AttackStateChangeNotify.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnDelegateSignature, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAttackStateChanged, EAttackStateTypes);
 
 UCLASS()
-class SESSIONSHOT_API UAttackEndNotify : public UAnimNotify
+class SESSIONSHOT_API UAttackStateChangeNotify : public UAnimNotify
 {
 	GENERATED_BODY()
-	
+
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool Attacks = false;
+	FOnAttackStateChanged OnNotifyBroadcast;
 
-	FOnDelegateSignature OnNotified;
+	UPROPERTY(EditAnywhere)
+	EAttackStateTypes AttackState;
 };

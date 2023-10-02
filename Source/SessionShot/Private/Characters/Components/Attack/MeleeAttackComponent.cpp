@@ -2,8 +2,9 @@
 
 #include "Characters/Components/Attack/MeleeAttackComponent.h"
 #include "Characters/BaseCharacter.h"
-#include "Characters/Animations/Notify/AttackStartNotify.h"
-#include "Characters/Animations/Notify/AttackEndNotify.h"
+#include "Characters/Animations/Notify/AttackStateChangeNotify.h"
+#include "Characters/Animations/Notify/ComboResetNotify.h"
+#include "Characters/Animations/Notify/AnimUtils.h"
 
 UMeleeAttackComponent::UMeleeAttackComponent()
 {
@@ -78,7 +79,6 @@ void UMeleeAttackComponent::InitAnimations()
 {
 	if (ComboAttackMap.IsEmpty()) return;
 
-
 	for (int32 Index = 0; Index < ComboAttackMap.Num(); ++Index)
 	{
 		UAnimMontage* AttackMontage = ComboAttackMap.Find(Index)->Montage;
@@ -91,27 +91,27 @@ void UMeleeAttackComponent::InitAnimations()
 
 		for (auto NotifyEvent : NotifyEvents)
 		{
-			auto AttackStartNotify = Cast<UAttackStartNotify>(NotifyEvent.Notify);
-			if (AttackStartNotify)
+			auto AttackStateNotify = Cast<UAttackStateChangeNotify>(NotifyEvent.Notify);
+			if (AttackStateNotify)
 			{
-				AttackStartNotify->OnNotified.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
+				AttackStateNotify->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
 				continue;
 			}
 		}
 
 		for (auto NotifyEvent : NotifyEvents)
 		{
-			auto AttackEndNotify = Cast<UAttackEndNotify>(NotifyEvent.Notify);
-			if (AttackEndNotify)
+			auto ComboResetNotify = Cast<UComboResetNotify>(NotifyEvent.Notify);
+			if (ComboResetNotify)
 			{
-				AttackEndNotify->OnNotified.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
+				ComboResetNotify->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::ResetCurrentAttackIndex);
 				continue;
 			}
 		}
 	}
 }
 
-void UMeleeAttackComponent::OnStateChanged(bool Attacks)
+void UMeleeAttackComponent::OnStateChanged(EAttackStateTypes StateType)
 {
-	IsAttacks = Attacks;
+	IsAttacks = StateType == EAttackStateTypes::AttackStart;
 }
