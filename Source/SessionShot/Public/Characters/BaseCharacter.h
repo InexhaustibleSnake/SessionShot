@@ -34,4 +34,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ond Death")
+	float LifeSpanOnDeath = 10.0f;
+
+	UFUNCTION()
+	void OnDeath();
+
 };

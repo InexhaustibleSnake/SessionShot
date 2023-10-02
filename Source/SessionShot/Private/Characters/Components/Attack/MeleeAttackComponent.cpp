@@ -26,11 +26,7 @@ void UMeleeAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!OwnerCharacter)
-	{
-		UE_LOG(LogMeleeAttackComponent, Display, TEXT("MeleeAttackComponent should contain data in ComboAttackMap"));
-		return;
-	}
+	if (!OwnerCharacter) return;
 	
 	FVector TraceStart = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket);
 	FVector TraceEnd = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket);
@@ -40,7 +36,11 @@ void UMeleeAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 void UMeleeAttackComponent::Server_Attack_Implementation()
 {
-	if (ComboAttackMap.IsEmpty()) return;
+	if (ComboAttackMap.IsEmpty())
+	{
+		UE_LOG(LogMeleeAttackComponent, Display, TEXT("MeleeAttackComponent should contain data in ComboAttackMap"));
+		return;
+	}
 
 	int32 MaxAttackIndex = ComboAttackMap.Num();
 

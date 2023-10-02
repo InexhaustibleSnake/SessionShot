@@ -5,6 +5,8 @@
 #include "InputActionValue.h"
 #include "Characters/Components/Attack/MeleeAttackComponent.h"
 #include "Characters/Components/HealthComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -22,6 +24,7 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	HealthComponent->OnDeath.AddDynamic(this, &ABaseCharacter::OnDeath);
 }
 
 void ABaseCharacter::AddMovement(const FInputActionValue& Value)
@@ -49,4 +52,15 @@ void ABaseCharacter::Attack()
 void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)
 {
 	PlayAnimMontage(AnimMontage);
+}
+
+void ABaseCharacter::OnDeath()
+{
+	GetCharacterMovement()->DisableMovement();
+	SetLifeSpan(LifeSpanOnDeath);
+
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetSimulatePhysics(true);
 }
