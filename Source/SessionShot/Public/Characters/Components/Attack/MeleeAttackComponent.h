@@ -51,8 +51,11 @@ protected:
 
 	bool IsAttacks = false;
 
-	UFUNCTION()
 	void MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd, float Damage);
+
+	UFUNCTION(Reliable, Server)
+	void ApplyDamageToActor(const FHitResult& HitResult);
+	void ApplyDamageToActor_Implementation(const FHitResult& HitResult);
 
 	FVector GetMeshSocketLocation(const ACharacter* Character, const FName SocketName) const;
 

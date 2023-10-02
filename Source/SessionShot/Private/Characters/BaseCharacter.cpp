@@ -13,6 +13,8 @@ ABaseCharacter::ABaseCharacter()
 	MeleeAttackComponent = CreateDefaultSubobject<UMeleeAttackComponent>("MeleeAttackComponent");
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
+	GetMesh()->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::AlwaysTickPoseAndRefreshBones;
+
 	SetReplicates(true);
 }
 

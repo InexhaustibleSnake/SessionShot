@@ -6,6 +6,8 @@
 #include "Characters/Animations/Notify/ComboResetNotify.h"
 #include "Characters/Animations/Notify/AnimUtils.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogMeleeAttackComponent, All, All);
+
 UMeleeAttackComponent::UMeleeAttackComponent()
 {
 	SetComponentTickEnabled(true);
@@ -24,12 +26,16 @@ void UMeleeAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!OwnerCharacter) return;
+	if (!OwnerCharacter)
+	{
+		UE_LOG(LogMeleeAttackComponent, Display, TEXT("MeleeAttackComponent should contain data in ComboAttackMap"));
+		return;
+	}
 	
 	FVector TraceStart = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket);
 	FVector TraceEnd = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket);
 
-	MakeDamageTrace(TraceStart, TraceEnd, 5.0f);
+	MakeDamageTrace(TraceStart, TraceEnd, CurrentAttackData.Damage);
 }
 
 void UMeleeAttackComponent::Server_Attack_Implementation()
@@ -53,19 +59,24 @@ void UMeleeAttackComponent::MakeDamageTrace(const FVector TraceStart, const FVec
 {
 	if (!IsAttacks) return;
 
-	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Cyan, false, 5);
-
 	FHitResult HitResult;
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());
 
-	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility);
+	GetWorld()->LineTraceSingleByChannel(HitResult, GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), ECollisionChannel::ECC_Visibility, CollisionParams);
+	DrawDebugLine(GetWorld(), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), FColor::Red, false, 2.0f);
 
-	if (HitResult.GetActor())
-	{
-		HitResult.GetActor()->TakeDamage(Damage, FDamageEvent{}, nullptr, GetOwner());
-	}
+	ApplyDamageToActor(HitResult);
+}
+
+void UMeleeAttackComponent::ApplyDamageToActor_Implementation(const FHitResult& HitResult)
+{
+	if (!HitResult.GetActor()) return;
+	
+	HitResult.GetActor()->TakeDamage(CurrentAttackData.Damage, FDamageEvent{}, nullptr, GetOwner());
+
+	IsAttacks = false;
 }
 
 FVector UMeleeAttackComponent::GetMeshSocketLocation(const ACharacter* Character, const FName SocketName) const
@@ -82,11 +93,8 @@ void UMeleeAttackComponent::InitAnimations()
 	for (int32 Index = 0; Index < ComboAttackMap.Num(); ++Index)
 	{
 		UAnimMontage* AttackMontage = ComboAttackMap.Find(Index)->Montage;
-		if (!AttackMontage)
-		{
-			continue;
-		}
-
+		if (!AttackMontage)	continue;
+		
 		const auto NotifyEvents = ComboAttackMap.Find(Index)->Montage->Notifies;
 
 		for (auto NotifyEvent : NotifyEvents)

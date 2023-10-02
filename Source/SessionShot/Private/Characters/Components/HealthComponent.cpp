@@ -5,15 +5,19 @@
 
 UHealthComponent::UHealthComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 }
 
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!GetOwner()) return;
 	
 	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::OnTakeAnyDamage);
+
+	Health = MaxHealth;
 }
 
 void UHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
@@ -33,7 +37,7 @@ void UHealthComponent::ServerSetHealth_Implementation(float NewHealth)
 {
 	Health = FMath::Clamp(NewHealth, 0.0f, MaxHealth);
 
-	OnHealthChanged.Broadcast(Health);
+	OnHealthChanged.Broadcast(GetHealthPercent());
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
