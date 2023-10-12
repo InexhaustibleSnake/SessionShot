@@ -63,4 +63,10 @@ void ABaseCharacter::OnDeath()
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
+	ServerOnDeath();
+}
+
+void ABaseCharacter::ServerOnDeath_Implementation()
+{
+	//Destroy();
 }

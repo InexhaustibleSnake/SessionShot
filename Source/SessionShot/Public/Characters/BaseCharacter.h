@@ -41,4 +41,7 @@ protected:
 	UFUNCTION()
 	void OnDeath();
 
+	UFUNCTION(Server, Reliable)
+	void ServerOnDeath();
+	void ServerOnDeath_Implementation();
 };

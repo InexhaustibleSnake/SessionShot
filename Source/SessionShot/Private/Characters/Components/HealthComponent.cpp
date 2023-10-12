@@ -2,6 +2,9 @@
 
 #include "Characters/Components/HealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Logic/BaseGameMode.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/Controller.h"
 
 UHealthComponent::UHealthComponent()
 {
@@ -29,8 +32,22 @@ void UHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const
 	if (IsDead())
 	{
 		OnDeath.Broadcast();
+		ServerKilled_Implementation(InstigatedBy);
 		return;
 	}
+}
+
+void UHealthComponent::ServerKilled_Implementation(AController* KillerController)
+{
+	if (!GetWorld()) return;
+
+	const auto GameMode = Cast<ABaseGameMode>(GetWorld()->GetAuthGameMode());
+	if (!GameMode) return;
+
+	const auto OwnerCharacter = Cast<APawn>(GetOwner());
+	const auto OwnerController = OwnerCharacter ? OwnerCharacter->GetController() : nullptr;
+
+	GameMode->CharacterKilled(OwnerController, KillerController);
 }
 
 void UHealthComponent::ServerSetHealth_Implementation(float NewHealth)

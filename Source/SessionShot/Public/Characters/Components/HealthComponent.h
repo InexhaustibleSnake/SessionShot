@@ -43,6 +43,10 @@ protected:
 	UFUNCTION()
 	virtual void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
+	UFUNCTION(Server, Reliable)
+	void ServerKilled(AController* KillerController);
+	void ServerKilled_Implementation(AController* KillerController);
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health")
 	float MaxHealth = 100.0f;
 
