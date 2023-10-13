@@ -15,6 +15,8 @@ public:
 	void CharacterKilled(AController* VictimController, AController* KillerController);
 
 protected:
-	void ResetPlayer();
+	void RequestRespawn(AController* Controller);
+
+	void ResetOnePlayer(AController* Controller);
 
 };

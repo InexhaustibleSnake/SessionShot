@@ -1,24 +1,30 @@
 // The project was made by Alexey Guchmazov Ilich (Inexhaustible Snake) for educational purposes
 
 #include "Logic/BaseGameMode.h"
+#include "Logic/BasePlayerState.h"
 
 void ABaseGameMode::CharacterKilled(AController* VictimController, AController* KillerController)
 {
-	if (VictimController && VictimController->GetPawn())
-	{
-		VictimController->GetPawn()->Reset();
-	}
+	const auto VictimState = Cast<ABasePlayerState>(VictimController->PlayerState);
+	if (VictimState) VictimState->AddDeaths();
 
-	RestartPlayer(VictimController);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, ("RestartPlayer"));
+	const auto KillerState = Cast<ABasePlayerState>(VictimController->PlayerState);
+	if (KillerState) KillerState->AddKills();
+
+	RequestRespawn(VictimController);
 }
 
-void ABaseGameMode::ResetPlayer()
+void ABaseGameMode::RequestRespawn(AController* Controller)
 {
-	if (!GetWorld()) return;
+	ResetOnePlayer(Controller);
+}
 
-	for (auto Iterator = GetWorld()->GetControllerIterator(); Iterator; ++Iterator)
+void ABaseGameMode::ResetOnePlayer(AController* Controller)
+{
+	if (Controller && Controller->GetPawn())
 	{
-		//if ();
+		Controller->GetPawn()->Reset();
 	}
+
+	RestartPlayer(Controller);
 }
