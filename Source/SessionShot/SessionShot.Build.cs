@@ -13,10 +13,11 @@ public class SessionShot : ModuleRules
         PublicIncludePaths.AddRange(new string[]
 {
             "SessionShot/Public",
-            "SessionShot/Public/Characters",
-            "SessionShot/Public/Characters/Notify",
-            "SessionShot/Public/Components",
-            "SessionShot/Public/Components/Attack"
+            "SessionShot/Public/Characters/Components",
+            "SessionShot/Public/Characters/Animations",
+            "SessionShot/Public/Logic",
+            "SessionShot/Public/Player",
+            "SessionShot/Public/Player/Input"
 });
 
         // Uncomment if you are using Slate UI

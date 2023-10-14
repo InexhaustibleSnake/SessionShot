@@ -5,33 +5,35 @@
 #include "Characters/Animations/Notify/AttackStateChangeNotify.h"
 #include "Characters/Animations/Notify/ComboResetNotify.h"
 #include "Characters/Animations/Notify/AnimUtils.h"
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMeleeAttackComponent, All, All);
 
 UMeleeAttackComponent::UMeleeAttackComponent()
 {
-	SetComponentTickEnabled(true);
+	SetComponentTickEnabled(false);
 }
 
 void UMeleeAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!GetOwner()) return;
+
 	OwnerCharacter = Cast<ABaseCharacter>(GetOwner());
+	if (!OwnerCharacter) return;
+
+	AttackTimerDelegate.BindUFunction(this, FName("MakeDamageTrace"), CurrentAttackData.TraceStartSocket, CurrentAttackData.TraceEndSocket, CurrentAttackData.Damage);
 
 	InitAnimations();
 }
 
-void UMeleeAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UMeleeAttackComponent::Attack()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (!GetWorld()) return;
+	GetWorld()->GetTimerManager().SetTimer(AttackTimer, AttackTimerDelegate, AttackTraceFrequency, true);
 
-	if (!OwnerCharacter) return;
-	
-	FVector TraceStart = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket);
-	FVector TraceEnd = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket);
-
-	MakeDamageTrace(TraceStart, TraceEnd, CurrentAttackData.Damage);
+	Super::Attack();
 }
 
 void UMeleeAttackComponent::Server_Attack_Implementation()
@@ -42,10 +44,6 @@ void UMeleeAttackComponent::Server_Attack_Implementation()
 		return;
 	}
 
-	int32 MaxAttackIndex = ComboAttackMap.Num();
-
-	CurrentAttackIndex = ++CurrentAttackIndex % MaxAttackIndex;
-
 	CurrentAttackData = ComboAttackMap[CurrentAttackIndex];
 
 	auto AttackMontage = CurrentAttackData.Montage;
@@ -53,21 +51,27 @@ void UMeleeAttackComponent::Server_Attack_Implementation()
 	if (!OwnerCharacter || !AttackMontage) return;
 
 	OwnerCharacter->Multicast_PlayAnimMontage(AttackMontage);
+
+	int32 MaxAttackIndex = ComboAttackMap.Num();
+
+	CurrentAttackIndex = ++CurrentAttackIndex % MaxAttackIndex;
 }
 
 void UMeleeAttackComponent::MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd, float Damage)
 {
-	if (!IsAttacks) return;
-
 	FHitResult HitResult;
-
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), ECollisionChannel::ECC_Visibility, CollisionParams);
+	
 	DrawDebugLine(GetWorld(), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), FColor::Red, false, 2.0f);
 
 	ApplyDamageToActor(HitResult);
+
+	if (!HitResult.bBlockingHit) return;
+	GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Damage Trace Stop");
 }
 
 void UMeleeAttackComponent::ApplyDamageToActor_Implementation(const FHitResult& HitResult)
@@ -75,8 +79,6 @@ void UMeleeAttackComponent::ApplyDamageToActor_Implementation(const FHitResult& 
 	if (!HitResult.GetActor()) return;
 	
 	HitResult.GetActor()->TakeDamage(CurrentAttackData.Damage, FDamageEvent{}, nullptr, GetOwner());
-
-	IsAttacks = false;
 }
 
 FVector UMeleeAttackComponent::GetMeshSocketLocation(const ACharacter* Character, const FName SocketName) const
@@ -121,5 +123,12 @@ void UMeleeAttackComponent::InitAnimations()
 
 void UMeleeAttackComponent::OnStateChanged(EAttackStateTypes StateType)
 {
-	IsAttacks = StateType == EAttackStateTypes::AttackStart;
+	if (StateType == EAttackStateTypes::AttackEnd) GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
+}
+
+void UMeleeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UMeleeAttackComponent, CurrentAttackData);
+
 }

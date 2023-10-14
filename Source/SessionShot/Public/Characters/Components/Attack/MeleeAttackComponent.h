@@ -37,20 +37,15 @@ class SESSIONSHOT_API UMeleeAttackComponent : public UBaseAttackComponent
 public:
 	UMeleeAttackComponent();
 
+	virtual void Attack() override;
+
 protected:
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	virtual void Server_Attack_Implementation() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-	int32 CurrentAttackIndex = 0;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
-	TMap<int32, FAttackData> ComboAttackMap;
-
-	bool IsAttacks = false;
-
+	UFUNCTION()
 	void MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd, float Damage);
 
 	UFUNCTION(Reliable, Server)
@@ -65,8 +60,22 @@ protected:
 
 	void ResetCurrentAttackIndex() { CurrentAttackIndex = 0; }
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	int32 CurrentAttackIndex = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
+	TMap<int32, FAttackData> ComboAttackMap;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	float AttackTraceFrequency = 0.005f;
+
+	UPROPERTY(Replicated)
 	FAttackData CurrentAttackData;
 
 	ABaseCharacter* OwnerCharacter;
+
+private:
+	FTimerHandle AttackTimer;
+	FTimerDelegate AttackTimerDelegate;
 
 };
