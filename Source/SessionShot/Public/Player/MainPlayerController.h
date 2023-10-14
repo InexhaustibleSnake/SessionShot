@@ -26,6 +26,8 @@ protected:
 	void AddMovementInput(const FInputActionValue& Value);
 
 	void Attack(const FInputActionValue& Value);
+	void SecondaryAttack(const FInputActionValue& Value);
+
 	void Jump(const FInputActionValue& Value);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Control")

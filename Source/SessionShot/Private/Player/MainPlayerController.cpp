@@ -27,7 +27,7 @@ void AMainPlayerController::SetupInputComponent()
 
 	EnhancedInputComponent->BindAction(InputActions->Jump, ETriggerEvent::Triggered, this, &AMainPlayerController::Jump);
 
-	EnhancedInputComponent->BindAction(InputActions->Attack, ETriggerEvent::Started, this, &AMainPlayerController::Attack);
+	EnhancedInputComponent->BindAction(InputActions->SecondaryAttack, ETriggerEvent::Started, this, &AMainPlayerController::Attack);
 }
 
 void AMainPlayerController::OnPossess(APawn* aPawn)
@@ -64,6 +64,13 @@ void AMainPlayerController::Attack(const FInputActionValue& Value)
 	if (!GetPossessedCharacter()) return;
 
 	GetPossessedCharacter()->Attack();
+}
+
+void AMainPlayerController::SecondaryAttack(const FInputActionValue& Value)
+{
+	if (!GetPossessedCharacter()) return;
+
+	GetPossessedCharacter()->SecondaryAttack();
 }
 
 void AMainPlayerController::Jump(const FInputActionValue& Value)

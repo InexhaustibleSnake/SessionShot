@@ -9,11 +9,6 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogMeleeAttackComponent, All, All);
 
-UMeleeAttackComponent::UMeleeAttackComponent()
-{
-	SetComponentTickEnabled(false);
-}
-
 void UMeleeAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();

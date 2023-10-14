@@ -9,34 +9,12 @@
 
 class ABaseCharacter;
 
-USTRUCT(BlueprintType)
-struct FAttackData
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
-	float Damage = 10.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
-	UAnimMontage* Montage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
-	FName TraceStartSocket;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
-	FName TraceEndSocket;
-
-};
-
 UCLASS()
 class SESSIONSHOT_API UMeleeAttackComponent : public UBaseAttackComponent
 {
 	GENERATED_BODY()
 
 public:
-	UMeleeAttackComponent();
-
 	virtual void Attack() override;
 
 protected:
@@ -62,9 +40,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	int32 CurrentAttackIndex = 0;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
-	TMap<int32, FAttackData> ComboAttackMap;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	float AttackTraceFrequency = 0.005f;

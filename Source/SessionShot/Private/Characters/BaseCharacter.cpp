@@ -4,6 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
 #include "Characters/Components/Attack/MeleeAttackComponent.h"
+#include "Characters/Components/Attack/RangeAttackComponent.h"
 #include "Characters/Components/HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -13,6 +14,7 @@ ABaseCharacter::ABaseCharacter()
 	PrimaryActorTick.bCanEverTick = false;
 
 	MeleeAttackComponent = CreateDefaultSubobject<UMeleeAttackComponent>("MeleeAttackComponent");
+	RangeAttackComponent = CreateDefaultSubobject<URangeAttackComponent>("RangeAttackComponent");
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
 	SetReplicates(true);
@@ -44,7 +46,12 @@ void ABaseCharacter::AddMovement(const FInputActionValue& Value)
 
 void ABaseCharacter::Attack()
 {
-	MeleeAttackComponent->Attack();
+	MeleeCharacter ? MeleeAttackComponent->Attack() : RangeAttackComponent->Attack();
+}
+
+void ABaseCharacter::SecondaryAttack()
+{
+	MeleeCharacter ? RangeAttackComponent->Attack() : MeleeAttackComponent->Attack();
 }
 
 void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)

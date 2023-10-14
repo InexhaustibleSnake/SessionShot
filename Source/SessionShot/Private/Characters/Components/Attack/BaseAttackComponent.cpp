@@ -5,7 +5,7 @@
 
 UBaseAttackComponent::UBaseAttackComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	
 	SetIsReplicatedByDefault(true);
 }
