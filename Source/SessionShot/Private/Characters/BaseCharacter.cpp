@@ -17,13 +17,6 @@ ABaseCharacter::ABaseCharacter()
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	SpringArmComponent->SetupAttachment(GetMesh());
-	SpringArmComponent->bUsePawnControlRotation = true;
-	SpringArmComponent->TargetArmLength = 350.0f;
-
-	FVector SpringArmComponentLocation;
-	SpringArmComponentLocation.Set(-50.0f, 0.0f, 180.0f);
-
-	SpringArmComponent->SetWorldLocation(SpringArmComponentLocation);
 
 	MainCamera = CreateDefaultSubobject<UCameraComponent>("MainCamera");
 	MainCamera->SetupAttachment(SpringArmComponent);
@@ -32,8 +25,19 @@ ABaseCharacter::ABaseCharacter()
 	RangeAttackComponent = CreateDefaultSubobject<URangeAttackComponent>("RangeAttackComponent");
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
+	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->TargetArmLength = 350.0f;
+
+	FVector SpringArmComponentLocation;
+	SpringArmComponentLocation.Set(-50.0f, 0.0f, 180.0f);
+
+	SpringArmComponent->SetWorldLocation(SpringArmComponentLocation);
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = true;
+
+	SpringArmComponent->bEnableCameraLag = true;
+	SpringArmComponent->CameraLagSpeed = 12.5f;
 
 	SetReplicates(true);
 }
