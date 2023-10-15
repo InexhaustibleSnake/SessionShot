@@ -10,6 +10,8 @@
 class UMeleeAttackComponent;
 class URangeAttackComponent;
 class UHealthComponent;
+class UCameraComponent;
+class USpringArmComponent;
 
 UCLASS()
 class SESSIONSHOT_API ABaseCharacter : public ACharacter
@@ -24,6 +26,8 @@ public:
 	virtual void Attack();
 
 	virtual void SecondaryAttack();
+
+	void Aim();
 
 	UFUNCTION(NetMulticast, UnReliable, Category = "Animations")
 	void Multicast_PlayAnimMontage(UAnimMontage* AnimMontage);
@@ -41,11 +45,26 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UHealthComponent* HealthComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	UCameraComponent* MainCamera;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	USpringArmComponent* SpringArmComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "On Death")
 	float LifeSpanOnDeath = 10.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "On Death")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool MeleeCharacter = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
+	bool Aiming = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
+	float AimFOV = 35.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
+	float NonAimFOV = 90.0f;
 
 	UFUNCTION()
 	void OnDeath();

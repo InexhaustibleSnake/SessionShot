@@ -14,9 +14,6 @@ class SESSIONSHOT_API UMeleeAttackComponent : public UBaseAttackComponent
 {
 	GENERATED_BODY()
 
-public:
-	virtual void Attack() override;
-
 protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

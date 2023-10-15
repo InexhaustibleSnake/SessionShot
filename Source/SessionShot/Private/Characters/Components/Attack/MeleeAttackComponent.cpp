@@ -23,16 +23,11 @@ void UMeleeAttackComponent::BeginPlay()
 	InitAnimations();
 }
 
-void UMeleeAttackComponent::Attack()
+void UMeleeAttackComponent::Server_Attack_Implementation()
 {
 	if (!GetWorld()) return;
 	GetWorld()->GetTimerManager().SetTimer(AttackTimer, AttackTimerDelegate, AttackTraceFrequency, true);
 
-	Super::Attack();
-}
-
-void UMeleeAttackComponent::Server_Attack_Implementation()
-{
 	if (ComboAttackMap.IsEmpty())
 	{
 		UE_LOG(LogMeleeAttackComponent, Display, TEXT("MeleeAttackComponent should contain data in ComboAttackMap"));
@@ -59,14 +54,13 @@ void UMeleeAttackComponent::MakeDamageTrace(const FVector TraceStart, const FVec
 	CollisionParams.AddIgnoredActor(GetOwner());
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), ECollisionChannel::ECC_Visibility, CollisionParams);
-	
+
 	DrawDebugLine(GetWorld(), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), FColor::Red, false, 2.0f);
 
 	ApplyDamageToActor(HitResult);
 
 	if (!HitResult.bBlockingHit) return;
 	GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Damage Trace Stop");
 }
 
 void UMeleeAttackComponent::ApplyDamageToActor_Implementation(const FHitResult& HitResult)
@@ -125,5 +119,4 @@ void UMeleeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UMeleeAttackComponent, CurrentAttackData);
-
 }

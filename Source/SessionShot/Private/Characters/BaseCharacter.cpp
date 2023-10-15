@@ -8,14 +8,32 @@
 #include "Characters/Components/HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
+	SpringArmComponent->SetupAttachment(GetMesh());
+	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->TargetArmLength = 350.0f;
+
+	FVector SpringArmComponentLocation;
+	SpringArmComponentLocation.Set(-50.0f, 0.0f, 180.0f);
+
+	SpringArmComponent->SetWorldLocation(SpringArmComponentLocation);
+
+	MainCamera = CreateDefaultSubobject<UCameraComponent>("MainCamera");
+	MainCamera->SetupAttachment(SpringArmComponent);
+
 	MeleeAttackComponent = CreateDefaultSubobject<UMeleeAttackComponent>("MeleeAttackComponent");
 	RangeAttackComponent = CreateDefaultSubobject<URangeAttackComponent>("RangeAttackComponent");
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = true;
 
 	SetReplicates(true);
 }
@@ -54,9 +72,19 @@ void ABaseCharacter::SecondaryAttack()
 	MeleeCharacter ? RangeAttackComponent->Attack() : MeleeAttackComponent->Attack();
 }
 
+void ABaseCharacter::Aim()
+{
+	Aiming = !Aiming;
+	bUseControllerRotationYaw = Aiming;
+
+	const auto PlayerController = Cast<APlayerController>(GetController());
+
+	PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
+}
+
 void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)
 {
-	PlayAnimMontage(AnimMontage);
+	PlayAnimMontage(AnimMontage); 
 }
 
 void ABaseCharacter::OnDeath()

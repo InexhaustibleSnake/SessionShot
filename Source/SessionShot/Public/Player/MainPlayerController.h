@@ -30,6 +30,8 @@ protected:
 
 	void Jump(const FInputActionValue& Value);
 
+	void Aim(const FInputActionValue& Value);
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Control")
 	UInputMappingContext* InputMapping;
 	
