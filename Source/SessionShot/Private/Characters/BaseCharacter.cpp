@@ -80,10 +80,21 @@ void ABaseCharacter::Aim()
 {
 	Aiming = !Aiming;
 	bUseControllerRotationYaw = Aiming;
-
 	const auto PlayerController = Cast<APlayerController>(GetController());
-
+	
 	PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
+
+	ServerOnPlayerAiming(Aiming);
+}
+
+void ABaseCharacter::ServerOnPlayerAiming_Implementation(bool bAiming)
+{
+	MulticastOnPlayerAiming(bAiming);
+}
+
+void ABaseCharacter::MulticastOnPlayerAiming_Implementation(bool bAiming)
+{
+	bUseControllerRotationYaw = bAiming;
 }
 
 void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)

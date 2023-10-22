@@ -29,12 +29,23 @@ public:
 
 	void Aim();
 
+	UFUNCTION(BlueprintCallable, Category = "Aim")
+	bool IsAiming() const { return Aiming; }
+
 	UFUNCTION(NetMulticast, UnReliable, Category = "Animations")
 	void Multicast_PlayAnimMontage(UAnimMontage* AnimMontage);
 	void Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage);
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION(Server, UnReliable, Category = "Aiming")
+	void ServerOnPlayerAiming(bool bAiming);
+	void ServerOnPlayerAiming_Implementation(bool bAiming);
+
+	UFUNCTION(NetMulticast, UnReliable, Category = "Aiming")
+	void MulticastOnPlayerAiming(bool bAiming);
+	void MulticastOnPlayerAiming_Implementation(bool bAiming);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UMeleeAttackComponent* MeleeAttackComponent;
@@ -57,7 +68,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool MeleeCharacter = true;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
+	UPROPERTY(BlueprintReadOnly, Category = "Aim")
 	bool Aiming = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
