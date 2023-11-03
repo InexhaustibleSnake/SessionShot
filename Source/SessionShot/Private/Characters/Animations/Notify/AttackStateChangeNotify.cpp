@@ -2,6 +2,11 @@
 
 #include "Characters/Animations/Notify/AttackStateChangeNotify.h"
 
+UAttackStateChangeNotify::UAttackStateChangeNotify()
+{
+	NotifyColor = FColor::Red;
+}
+
 void UAttackStateChangeNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	OnNotifyBroadcast.Broadcast(AttackState);

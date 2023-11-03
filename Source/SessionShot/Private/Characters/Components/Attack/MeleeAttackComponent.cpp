@@ -25,9 +25,6 @@ void UMeleeAttackComponent::BeginPlay()
 
 void UMeleeAttackComponent::Server_Attack_Implementation()
 {
-	if (!GetWorld()) return;
-	GetWorld()->GetTimerManager().SetTimer(AttackTimer, AttackTimerDelegate, AttackTraceFrequency, true);
-
 	if (ComboAttackMap.IsEmpty())
 	{
 		UE_LOG(LogMeleeAttackComponent, Display, TEXT("MeleeAttackComponent should contain data in ComboAttackMap"));
@@ -85,34 +82,51 @@ void UMeleeAttackComponent::InitAnimations()
 	{
 		UAnimMontage* AttackMontage = ComboAttackMap.Find(Index)->Montage;
 		if (!AttackMontage)	continue;
+
+
+		for (int32 i = 0; i < AttackMontage->Notifies.Num(); ++i)
+		{
+			auto AnimNotifyEvent = FindNotifyByClass<UAttackStateChangeNotify>(AttackMontage);
+
+			AnimNotifyEvent->OnNotifyBroadcast.IsBound();
+
+			if (AnimNotifyEvent)
+			{
+				AnimNotifyEvent->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
+			}
+		}	 
+		//for (const auto NotifyEvent : AttackMontage->Notifies)
+		//{
+		//	const auto AnimNotifyEvent = Cast<UAttackStateChangeNotify>(NotifyEvent.Notify);
+
+		//	if (AnimNotifyEvent)
+		//	{
+		//		AnimNotifyEvent->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
+		//	}
+		//}
 		
-		const auto NotifyEvents = ComboAttackMap.Find(Index)->Montage->Notifies;
-
-		for (auto NotifyEvent : NotifyEvents)
+		auto ComboResetNotify = FindNotifyByClass<UComboResetNotify>(AttackMontage);
+		if (ComboResetNotify)
 		{
-			auto AttackStateNotify = Cast<UAttackStateChangeNotify>(NotifyEvent.Notify);
-			if (AttackStateNotify)
-			{
-				AttackStateNotify->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
-				continue;
-			}
-		}
-
-		for (auto NotifyEvent : NotifyEvents)
-		{
-			auto ComboResetNotify = Cast<UComboResetNotify>(NotifyEvent.Notify);
-			if (ComboResetNotify)
-			{
-				ComboResetNotify->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::ResetCurrentAttackIndex);
-				continue;
-			}
+			ComboResetNotify->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::ResetCurrentAttackIndex);
 		}
 	}
 }
 
 void UMeleeAttackComponent::OnStateChanged(EAttackStateTypes StateType)
 {
-	if (StateType == EAttackStateTypes::AttackEnd) GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
+	if (StateType == EAttackStateTypes::AttackStart)
+	{
+		if (!GetWorld()) return;
+		GetWorld()->GetTimerManager().SetTimer(AttackTimer, AttackTimerDelegate, AttackTraceFrequency, true);
+	}
+
+	if (StateType == EAttackStateTypes::AttackEnd)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
+
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Null");
+	}
 }
 
 void UMeleeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

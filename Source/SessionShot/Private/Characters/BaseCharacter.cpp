@@ -10,6 +10,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -47,6 +48,8 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	HealthComponent->OnDeath.AddDynamic(this, &ABaseCharacter::OnDeath);
+
+	GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
 }
 
 void ABaseCharacter::AddMovement(const FInputActionValue& Value)
@@ -68,7 +71,14 @@ void ABaseCharacter::AddMovement(const FInputActionValue& Value)
 
 void ABaseCharacter::Attack()
 {
-	MeleeCharacter ? MeleeAttackComponent->Attack() : RangeAttackComponent->Attack();
+	if (Aiming)
+	{
+		RangeAttackComponent->Attack();
+	}
+	else
+	{
+		MeleeAttackComponent->Attack();
+	}
 }
 
 void ABaseCharacter::SecondaryAttack()
@@ -78,18 +88,23 @@ void ABaseCharacter::SecondaryAttack()
 
 void ABaseCharacter::Aim()
 {
-	Aiming = !Aiming;
-	bUseControllerRotationYaw = Aiming;
-	const auto PlayerController = Cast<APlayerController>(GetController());
-	
-	PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
-
 	ServerOnPlayerAiming(Aiming);
+
+	bUseControllerRotationYaw = Aiming;
+
+	GetCharacterMovement()->MaxWalkSpeed = Aiming ? WalkingSpeed : DefaultSpeed;
+
+	const auto PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController) return;
+
+	PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
 }
 
 void ABaseCharacter::ServerOnPlayerAiming_Implementation(bool bAiming)
 {
-	MulticastOnPlayerAiming(bAiming);
+	Aiming = !Aiming;
+	MulticastOnPlayerAiming(Aiming);
+	GetCharacterMovement()->MaxWalkSpeed = Aiming ? WalkingSpeed : DefaultSpeed;
 }
 
 void ABaseCharacter::MulticastOnPlayerAiming_Implementation(bool bAiming)
@@ -111,4 +126,20 @@ void ABaseCharacter::OnDeath()
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetSimulatePhysics(true);
+}
+
+float ABaseCharacter::GetMovementDirection() const
+{
+	if (GetVelocity().IsZero()) return 0.0f;
+	const auto VelocityNormal = GetVelocity().GetSafeNormal();
+	const auto AngleBetween = FMath::Acos(FVector::DotProduct(GetActorForwardVector(), VelocityNormal));
+	const auto CrossProduct = FVector::CrossProduct(GetActorForwardVector(), VelocityNormal);
+	const auto Degrees = FMath::RadiansToDegrees(AngleBetween);
+	return CrossProduct.IsZero() ? Degrees : Degrees * FMath::Sign(CrossProduct.Z);
+}
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ABaseCharacter, Aiming);
 }

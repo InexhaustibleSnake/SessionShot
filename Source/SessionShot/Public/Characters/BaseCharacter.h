@@ -36,8 +36,12 @@ public:
 	void Multicast_PlayAnimMontage(UAnimMontage* AnimMontage);
 	void Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage);
 
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float GetMovementDirection() const;
+
 protected:
 	virtual void BeginPlay() override;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UFUNCTION(Server, UnReliable, Category = "Aiming")
 	void ServerOnPlayerAiming(bool bAiming);
@@ -62,13 +66,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	USpringArmComponent* SpringArmComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
+	float DefaultSpeed = 600.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
+	float WalkingSpeed = 300;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "On Death")
 	float LifeSpanOnDeath = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool MeleeCharacter = true;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Aim")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Aim")
 	bool Aiming = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
@@ -79,4 +89,5 @@ protected:
 
 	UFUNCTION()
 	void OnDeath();
+
 };

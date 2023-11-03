@@ -35,6 +35,9 @@ protected:
 
 	void ResetCurrentAttackIndex() { CurrentAttackIndex = 0; }
 
+	template <typename T>
+	T* FindNotifyByClass(UAnimSequenceBase* Animation);
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	int32 CurrentAttackIndex = 0;
 
@@ -46,8 +49,28 @@ protected:
 
 	ABaseCharacter* OwnerCharacter;
 
+
 private:
 	FTimerHandle AttackTimer;
 	FTimerDelegate AttackTimerDelegate;
 
 };
+
+template<typename T>
+inline T* UMeleeAttackComponent::FindNotifyByClass(UAnimSequenceBase* Animation)
+{
+	if (!Animation) return nullptr;
+
+	const auto NotifyEvents = Animation->Notifies;
+
+	for (auto NotifyEvent : NotifyEvents)
+	{
+		auto AnimNotify = Cast<T>(NotifyEvent.Notify);
+		if (AnimNotify && !AnimNotify->OnNotifyBroadcast.IsBound())
+		{
+			return AnimNotify;
+		}
+	}
+
+	return nullptr;
+}
