@@ -30,9 +30,16 @@ ABaseCharacter::ABaseCharacter()
 	SpringArmComponent->TargetArmLength = 350.0f;
 
 	FVector SpringArmComponentLocation;
-	SpringArmComponentLocation.Set(-50.0f, 0.0f, 180.0f);
-
+	SpringArmComponentLocation.Set(0.0f, 0.0f, 180.0f);
 	SpringArmComponent->SetWorldLocation(SpringArmComponentLocation);
+
+	FVector SpringArmSocketOffset;
+	SpringArmSocketOffset.Set(0.0f, 50.0f, 0.0f);
+	SpringArmComponent->SocketOffset = SpringArmSocketOffset;
+
+	SpringArmComponent->bEnableCameraLag = true;
+	float CameraLagSpeed = 12.5f;
+	SpringArmComponent->CameraLagSpeed = CameraLagSpeed;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = true;
@@ -41,11 +48,14 @@ ABaseCharacter::ABaseCharacter()
 	SpringArmComponent->CameraLagSpeed = 12.5f;
 
 	SetReplicates(true);
+
+	GetMesh()->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::AlwaysTickPoseAndRefreshBones;
 }
 
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	CheckActorComponents();
 
 	HealthComponent->OnDeath.AddDynamic(this, &ABaseCharacter::OnDeath);
 
@@ -81,35 +91,33 @@ void ABaseCharacter::Attack()
 	}
 }
 
-void ABaseCharacter::SecondaryAttack()
+void ABaseCharacter::OnPlayerAiming()
 {
-	MeleeCharacter ? RangeAttackComponent->Attack() : MeleeAttackComponent->Attack();
-}
+	if (!HasAuthority())
+	{
+		ServerOnPlayerAiming();
+	}
 
-void ABaseCharacter::Aim()
-{
-	ServerOnPlayerAiming(Aiming);
-
-	bUseControllerRotationYaw = Aiming;
-
-	GetCharacterMovement()->MaxWalkSpeed = Aiming ? WalkingSpeed : DefaultSpeed;
-
-	const auto PlayerController = Cast<APlayerController>(GetController());
-	if (!PlayerController) return;
-
-	PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
-}
-
-void ABaseCharacter::ServerOnPlayerAiming_Implementation(bool bAiming)
-{
 	Aiming = !Aiming;
-	MulticastOnPlayerAiming(Aiming);
-	GetCharacterMovement()->MaxWalkSpeed = Aiming ? WalkingSpeed : DefaultSpeed;
+	OnRep_Aiming();
+
+	if (IsLocallyControlled())
+	{
+		const auto PlayerController = Cast<APlayerController>(GetController());
+		if (!PlayerController) return;
+		PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
+	}
 }
 
-void ABaseCharacter::MulticastOnPlayerAiming_Implementation(bool bAiming)
+void ABaseCharacter::ServerOnPlayerAiming_Implementation()
 {
-	bUseControllerRotationYaw = bAiming;
+	OnPlayerAiming();
+}
+
+void ABaseCharacter::OnRep_Aiming()
+{
+	bUseControllerRotationYaw = Aiming;
+	GetCharacterMovement()->MaxWalkSpeed = Aiming ? WalkingSpeed : DefaultSpeed;
 }
 
 void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)
@@ -141,5 +149,5 @@ float ABaseCharacter::GetMovementDirection() const
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABaseCharacter, Aiming);
+	DOREPLIFETIME_CONDITION(ABaseCharacter, Aiming, COND_SkipOwner);
 }

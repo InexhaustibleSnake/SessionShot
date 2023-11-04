@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AnimUtils.h"
+#include <Animations/AnimUtils.h>
 #include "AttackStateChangeNotify.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAttackStateChanged, EAttackStateTypes);

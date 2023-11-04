@@ -18,9 +18,13 @@ void UBaseAttackComponent::BeginPlay()
 
 void UBaseAttackComponent::Attack()
 {
-	Server_Attack();
+	if (!GetOwner()->HasAuthority())
+	{
+		Server_Attack();
+	}
 }
 
 void UBaseAttackComponent::Server_Attack_Implementation()
 {
+	Attack();
 }

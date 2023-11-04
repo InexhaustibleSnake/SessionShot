@@ -25,9 +25,7 @@ public:
 
 	virtual void Attack();
 
-	virtual void SecondaryAttack();
-
-	void Aim();
+	void OnPlayerAiming();
 
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	bool IsAiming() const { return Aiming; }
@@ -43,13 +41,12 @@ protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	UFUNCTION(Server, UnReliable, Category = "Aiming")
-	void ServerOnPlayerAiming(bool bAiming);
-	void ServerOnPlayerAiming_Implementation(bool bAiming);
+	UFUNCTION(Server, Reliable, Category = "Aiming")
+	void ServerOnPlayerAiming();
+	void ServerOnPlayerAiming_Implementation();
 
-	UFUNCTION(NetMulticast, UnReliable, Category = "Aiming")
-	void MulticastOnPlayerAiming(bool bAiming);
-	void MulticastOnPlayerAiming_Implementation(bool bAiming);
+	UFUNCTION()
+	void OnRep_Aiming();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UMeleeAttackComponent* MeleeAttackComponent;
@@ -78,7 +75,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool MeleeCharacter = true;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Aim")
+	UPROPERTY(ReplicatedUsing = OnRep_Aiming, BlueprintReadOnly, Category = "Aim")
 	bool Aiming = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")

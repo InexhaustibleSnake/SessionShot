@@ -60,6 +60,6 @@ void UHealthComponent::ServerSetHealth_Implementation(float NewHealth)
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UHealthComponent, Health);
+	DOREPLIFETIME_CONDITION(UHealthComponent, Health, COND_OwnerOnly);
 }
 

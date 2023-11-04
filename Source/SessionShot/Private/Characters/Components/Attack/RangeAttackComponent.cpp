@@ -3,9 +3,19 @@
 #include "Characters/Components/Attack/RangeAttackComponent.h"
 #include "Projectiles/BaseProjectile.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
+#include "Net/UnrealNetwork.h"
 
-void URangeAttackComponent::Server_Attack_Implementation()
+void URangeAttackComponent::Attack()
 {
+	Super::Attack();
+
+	++BurstCounter;
+	OnRep_BurstCounter();
+
+	if (!GetOwner()->HasAuthority()) return;
+
 	SpawnProjectile();
 }
 
@@ -81,4 +91,25 @@ FVector URangeAttackComponent::GetMuzzleWorldLocation() const
 	const auto CharacterMesh = GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
 
 	return CharacterMesh ? CharacterMesh->GetSocketLocation(MuzzleSocketName) : FVector::ZeroVector;
+}
+
+void URangeAttackComponent::SpawnShotFX()
+{
+	auto OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter || !OwnerCharacter->GetMesh()) return;
+
+	UGameplayStatics::SpawnEmitterAttached(ProjectileFXData.CascadeParticle, OwnerCharacter->GetMesh(), ProjectileFXData.ParticleAttachName);
+}
+
+void URangeAttackComponent::OnRep_BurstCounter()
+{
+	if (GetNetMode() != ENetMode::NM_DedicatedServer)
+	{
+		SpawnShotFX();
+	}
+}
+
+void URangeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	DOREPLIFETIME_CONDITION(URangeAttackComponent, BurstCounter, COND_SkipOwner);
 }

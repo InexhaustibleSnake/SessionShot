@@ -1,6 +1,6 @@
 // The project was made by Alexey Guchmazov Ilich (Inexhaustible Snake) for educational purposes
 
-#include "Characters/Animations/Notify/AttackStateChangeNotify.h"
+#include "Animations/Notify/AttackStateChangeNotify.h"
 
 UAttackStateChangeNotify::UAttackStateChangeNotify()
 {

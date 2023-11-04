@@ -4,8 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "Characters/Components/Attack/BaseAttackComponent.h"
-#include "Characters/Animations/Notify/AnimUtils.h"
+#include "Animations/AnimUtils.h"
 #include "MeleeAttackComponent.generated.h"
+
+USTRUCT(BlueprintType)
+struct FAttackData
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
+	float Damage = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
+	UAnimMontage* Montage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
+	FName TraceStartSocket;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
+	FName TraceEndSocket;
+
+};
 
 class ABaseCharacter;
 
@@ -31,7 +51,7 @@ protected:
 
 	void InitAnimations();
 
-	void OnStateChanged(EAttackStateTypes StateType);
+	void OnAttackStateChanged(EAttackStateTypes StateType);
 
 	void ResetCurrentAttackIndex() { CurrentAttackIndex = 0; }
 
@@ -49,6 +69,8 @@ protected:
 
 	ABaseCharacter* OwnerCharacter;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attack")
+	TMap<int32, FAttackData> ComboAttackMap;
 
 private:
 	FTimerHandle AttackTimer;
@@ -66,7 +88,7 @@ inline T* UMeleeAttackComponent::FindNotifyByClass(UAnimSequenceBase* Animation)
 	for (auto NotifyEvent : NotifyEvents)
 	{
 		auto AnimNotify = Cast<T>(NotifyEvent.Notify);
-		if (AnimNotify && !AnimNotify->OnNotifyBroadcast.IsBound())
+		if (AnimNotify)
 		{
 			return AnimNotify;
 		}

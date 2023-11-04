@@ -2,9 +2,9 @@
 
 #include "Characters/Components/Attack/MeleeAttackComponent.h"
 #include "Characters/BaseCharacter.h"
-#include "Characters/Animations/Notify/AttackStateChangeNotify.h"
-#include "Characters/Animations/Notify/ComboResetNotify.h"
-#include "Characters/Animations/Notify/AnimUtils.h"
+#include "Animations/Notify/AttackStateChangeNotify.h"
+#include "Animations/Notify/ComboResetNotify.h"
+#include "Animations/AnimUtils.h"
 #include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMeleeAttackComponent, All, All);
@@ -83,28 +83,15 @@ void UMeleeAttackComponent::InitAnimations()
 		UAnimMontage* AttackMontage = ComboAttackMap.Find(Index)->Montage;
 		if (!AttackMontage)	continue;
 
-
-		for (int32 i = 0; i < AttackMontage->Notifies.Num(); ++i)
+		for (auto NotifyEvent : AttackMontage->Notifies)
 		{
-			auto AnimNotifyEvent = FindNotifyByClass<UAttackStateChangeNotify>(AttackMontage);
-
-			AnimNotifyEvent->OnNotifyBroadcast.IsBound();
-
-			if (AnimNotifyEvent)
+			auto AnimAttackNotify = Cast<UAttackStateChangeNotify>(NotifyEvent.Notify);
+			if (AnimAttackNotify)
 			{
-				AnimNotifyEvent->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
-			}
-		}	 
-		//for (const auto NotifyEvent : AttackMontage->Notifies)
-		//{
-		//	const auto AnimNotifyEvent = Cast<UAttackStateChangeNotify>(NotifyEvent.Notify);
+				AnimAttackNotify->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnAttackStateChanged);
+	     	}
+		}
 
-		//	if (AnimNotifyEvent)
-		//	{
-		//		AnimNotifyEvent->OnNotifyBroadcast.AddUObject(this, &UMeleeAttackComponent::OnStateChanged);
-		//	}
-		//}
-		
 		auto ComboResetNotify = FindNotifyByClass<UComboResetNotify>(AttackMontage);
 		if (ComboResetNotify)
 		{
@@ -113,19 +100,18 @@ void UMeleeAttackComponent::InitAnimations()
 	}
 }
 
-void UMeleeAttackComponent::OnStateChanged(EAttackStateTypes StateType)
+void UMeleeAttackComponent::OnAttackStateChanged(EAttackStateTypes StateType)
 {
+	if (!GetWorld()) return;
+
 	if (StateType == EAttackStateTypes::AttackStart)
 	{
-		if (!GetWorld()) return;
 		GetWorld()->GetTimerManager().SetTimer(AttackTimer, AttackTimerDelegate, AttackTraceFrequency, true);
 	}
 
 	if (StateType == EAttackStateTypes::AttackEnd)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
-
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Null");
 	}
 }
 
