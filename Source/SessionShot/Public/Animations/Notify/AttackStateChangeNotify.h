@@ -7,7 +7,7 @@
 #include <Animations/AnimUtils.h>
 #include "AttackStateChangeNotify.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnAttackStateChanged, EAttackStateTypes);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAttackStateChanged, USkeletalMeshComponent*, EAttackStateTypes);
 
 UCLASS()
 class SESSIONSHOT_API UAttackStateChangeNotify : public UAnimNotify

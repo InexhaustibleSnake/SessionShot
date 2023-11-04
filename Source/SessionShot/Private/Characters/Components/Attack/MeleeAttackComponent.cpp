@@ -18,13 +18,19 @@ void UMeleeAttackComponent::BeginPlay()
 	OwnerCharacter = Cast<ABaseCharacter>(GetOwner());
 	if (!OwnerCharacter) return;
 
-	AttackTimerDelegate.BindUFunction(this, FName("MakeDamageTrace"), CurrentAttackData.TraceStartSocket, CurrentAttackData.TraceEndSocket, CurrentAttackData.Damage);
-
-	InitAnimations();
+	if (GetOwner()->HasAuthority())
+	{
+		AttackTimerDelegate.BindUFunction(this, FName("MakeDamageTrace"), CurrentAttackData.TraceStartSocket, CurrentAttackData.TraceEndSocket, CurrentAttackData.Damage);
+		InitAnimations();
+	}
 }
 
-void UMeleeAttackComponent::Server_Attack_Implementation()
+void UMeleeAttackComponent::Attack()
 {
+	Super::Attack();
+
+	if (!GetOwner()->HasAuthority()) return;
+
 	if (ComboAttackMap.IsEmpty())
 	{
 		UE_LOG(LogMeleeAttackComponent, Display, TEXT("MeleeAttackComponent should contain data in ComboAttackMap"));
@@ -46,6 +52,8 @@ void UMeleeAttackComponent::Server_Attack_Implementation()
 
 void UMeleeAttackComponent::MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd, float Damage)
 {
+	if (!GetOwner()->HasAuthority()) return;
+
 	FHitResult HitResult;
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());
@@ -54,10 +62,9 @@ void UMeleeAttackComponent::MakeDamageTrace(const FVector TraceStart, const FVec
 
 	DrawDebugLine(GetWorld(), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), FColor::Red, false, 2.0f);
 
-	ApplyDamageToActor(HitResult);
-
 	if (!HitResult.bBlockingHit) return;
-	GetWorld()->GetTimerManager().ClearTimer(AttackTimer);
+	ApplyDamageToActor(HitResult);
+	OnAttackStateChanged(OwnerCharacter->GetMesh(), EAttackStateTypes::AttackEnd);
 }
 
 void UMeleeAttackComponent::ApplyDamageToActor_Implementation(const FHitResult& HitResult)
@@ -76,6 +83,8 @@ FVector UMeleeAttackComponent::GetMeshSocketLocation(const ACharacter* Character
 
 void UMeleeAttackComponent::InitAnimations()
 {
+	if (!GetOwner()->HasAuthority()) return;
+
 	if (ComboAttackMap.IsEmpty()) return;
 
 	for (int32 Index = 0; Index < ComboAttackMap.Num(); ++Index)
@@ -100,9 +109,9 @@ void UMeleeAttackComponent::InitAnimations()
 	}
 }
 
-void UMeleeAttackComponent::OnAttackStateChanged(EAttackStateTypes StateType)
+void UMeleeAttackComponent::OnAttackStateChanged(USkeletalMeshComponent* MeshComponent, EAttackStateTypes StateType)
 {
-	if (!GetWorld()) return;
+	if (!GetWorld() || !OwnerCharacter || MeshComponent != OwnerCharacter->GetMesh()) return;
 
 	if (StateType == EAttackStateTypes::AttackStart)
 	{
@@ -118,5 +127,5 @@ void UMeleeAttackComponent::OnAttackStateChanged(EAttackStateTypes StateType)
 void UMeleeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UMeleeAttackComponent, CurrentAttackData);
+	DOREPLIFETIME_CONDITION(UMeleeAttackComponent, CurrentAttackData, COND_OwnerOnly);
 }

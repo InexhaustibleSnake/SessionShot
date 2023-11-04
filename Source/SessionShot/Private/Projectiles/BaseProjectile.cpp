@@ -10,6 +10,8 @@ ABaseProjectile::ABaseProjectile()
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>("BoxComponent");
 	SetRootComponent(BoxCollision);
 
+	BoxCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
 	ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>("UParticleSystemComponent");
 	ParticleSystemComponent->SetupAttachment(GetRootComponent());
 

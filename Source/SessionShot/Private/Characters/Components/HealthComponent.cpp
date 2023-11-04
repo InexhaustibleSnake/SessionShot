@@ -9,6 +9,9 @@
 UHealthComponent::UHealthComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	SetComponentTickEnabled(false);
+
 	SetIsReplicatedByDefault(true);
 }
 

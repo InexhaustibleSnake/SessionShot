@@ -34,11 +34,12 @@ class SESSIONSHOT_API UMeleeAttackComponent : public UBaseAttackComponent
 {
 	GENERATED_BODY()
 
+public:
+	virtual void Attack() override;
+
 protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-
-	virtual void Server_Attack_Implementation() override;
 
 	UFUNCTION()
 	void MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd, float Damage);
@@ -51,7 +52,7 @@ protected:
 
 	void InitAnimations();
 
-	void OnAttackStateChanged(EAttackStateTypes StateType);
+	void OnAttackStateChanged(USkeletalMeshComponent* MeshComponent, EAttackStateTypes StateType);
 
 	void ResetCurrentAttackIndex() { CurrentAttackIndex = 0; }
 
@@ -62,7 +63,7 @@ protected:
 	int32 CurrentAttackIndex = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-	float AttackTraceFrequency = 0.005f;
+	float AttackTraceFrequency = 0.01f;
 
 	UPROPERTY(Replicated)
 	FAttackData CurrentAttackData;

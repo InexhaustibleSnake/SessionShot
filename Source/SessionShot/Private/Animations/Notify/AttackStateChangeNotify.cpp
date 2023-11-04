@@ -9,7 +9,7 @@ UAttackStateChangeNotify::UAttackStateChangeNotify()
 
 void UAttackStateChangeNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	OnNotifyBroadcast.Broadcast(AttackState);
+	OnNotifyBroadcast.Broadcast(MeshComp, AttackState);
 
 	Super::Notify(MeshComp, Animation, EventReference);
 }
