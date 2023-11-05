@@ -4,7 +4,7 @@
 
 void UComboResetNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	OnNotifyBroadcast.Broadcast();
+	OnNotifyBroadcast.Broadcast(MeshComp);
 
 	Super::Notify(MeshComp, Animation, EventReference);
 }

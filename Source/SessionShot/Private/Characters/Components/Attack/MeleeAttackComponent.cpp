@@ -124,6 +124,13 @@ void UMeleeAttackComponent::OnAttackStateChanged(USkeletalMeshComponent* MeshCom
 	}
 }
 
+void UMeleeAttackComponent::ResetCurrentAttackIndex(USkeletalMeshComponent* MeshComponent)
+{
+	if (!OwnerCharacter || OwnerCharacter->GetMesh() != MeshComponent) return;
+
+	CurrentAttackIndex = 0; 
+}
+
 void UMeleeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

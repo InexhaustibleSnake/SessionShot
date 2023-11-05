@@ -54,7 +54,7 @@ protected:
 
 	void OnAttackStateChanged(USkeletalMeshComponent* MeshComponent, EAttackStateTypes StateType);
 
-	void ResetCurrentAttackIndex() { CurrentAttackIndex = 0; }
+	void ResetCurrentAttackIndex(USkeletalMeshComponent* MeshComponent);
 
 	template <typename T>
 	T* FindNotifyByClass(UAnimSequenceBase* Animation);

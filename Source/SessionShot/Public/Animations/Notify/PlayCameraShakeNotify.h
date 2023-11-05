@@ -4,17 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "ComboResetNotify.generated.h"
+#include "PlayCameraShakeNotify.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnNotifyBroadcast, USkeletalMeshComponent*);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnBroadcast, USkeletalMeshComponent*, float);
 
 UCLASS()
-class SESSIONSHOT_API UComboResetNotify : public UAnimNotify
+class SESSIONSHOT_API UPlayCameraShakeNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-	FOnNotifyBroadcast OnNotifyBroadcast;
+	FOnBroadcast OnBroadcast;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Camera Shake")
+	float ShakeStrength = 1.0f;
 };
