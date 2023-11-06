@@ -69,11 +69,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float WalkingSpeed = 300;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "On Death")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "LifeSpan")
 	float LifeSpanOnDeath = 10.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
-	bool MeleeCharacter = true;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Aiming, BlueprintReadOnly, Category = "Aim")
 	bool Aiming = false;

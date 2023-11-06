@@ -61,7 +61,7 @@ protected:
 	float TraceDistance = 20000.0f;
 
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_BurstCounter)
-	int32 BurstCounter;
+	int32 BurstCounter; //Currently needed for FX replication
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
 	TSubclassOf<ABaseProjectile> ProjectileType;
