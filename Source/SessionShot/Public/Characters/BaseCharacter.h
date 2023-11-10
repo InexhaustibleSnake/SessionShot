@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "AbilitySystemInterface.h"
 #include "BaseCharacter.generated.h"
 
 class UMeleeAttackComponent;
@@ -12,9 +13,11 @@ class URangeAttackComponent;
 class UHealthComponent;
 class UCameraComponent;
 class USpringArmComponent;
+class UAbilityComponent;
+class UBaseAbility;
 
 UCLASS()
-class SESSIONSHOT_API ABaseCharacter : public ACharacter
+class SESSIONSHOT_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -37,9 +40,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	float GetMovementDirection() const;
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
 
 	UFUNCTION(Server, Reliable, Category = "Aiming")
 	void ServerOnPlayerAiming();
@@ -48,11 +57,21 @@ protected:
 	UFUNCTION()
 	void OnRep_Aiming();
 
+	virtual void GiveAbilities();
+
+	UFUNCTION()
+	void OnDeath();
+
+	int32 GetAbilityLevel() const { return 1; }
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UMeleeAttackComponent* MeleeAttackComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	URangeAttackComponent* RangeAttackComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	UAbilityComponent* AbilityComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UHealthComponent* HealthComponent;
@@ -81,7 +100,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
 	float NonAimFOV = 90.0f;
 
-	UFUNCTION()
-	void OnDeath();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
+	TArray<TSubclassOf<UBaseAbility>> DefaultAbilities;
 
 };

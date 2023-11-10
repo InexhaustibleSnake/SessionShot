@@ -3,13 +3,18 @@
 #include "Characters/BaseCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
-#include "Characters/Components/Attack/MeleeAttackComponent.h"
-#include "Characters/Components/Attack/RangeAttackComponent.h"
-#include "Characters/Components/HealthComponent.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Characters/Components/Attack/MeleeAttackComponent.h"
+#include "Characters/Components/Attack/RangeAttackComponent.h"
+#include "Characters/Components/HealthComponent.h"
+
+#include "Characters/Components/AbilityComponent.h"
+#include "Characters/Abilities/BaseAbility.h"
+
 #include "Net/UnrealNetwork.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -24,6 +29,11 @@ ABaseCharacter::ABaseCharacter()
 
 	MeleeAttackComponent = CreateDefaultSubobject<UMeleeAttackComponent>("MeleeAttackComponent");
 	RangeAttackComponent = CreateDefaultSubobject<URangeAttackComponent>("RangeAttackComponent");
+
+	AbilityComponent = CreateDefaultSubobject<UAbilityComponent>("AbilityComponent");
+	AbilityComponent->SetIsReplicated(true);
+	AbilityComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
 	SpringArmComponent->bUsePawnControlRotation = true;
@@ -63,6 +73,36 @@ void ABaseCharacter::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
 }
 
+void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (!AbilityComponent || !InputComponent) return;
+
+	FTopLevelAssetPath EnumPath = FTopLevelAssetPath(FName("/Script/SessionShot"), FName("EAbilityInputID"));
+
+	if (EnumPath.IsNull()) return;
+
+	const FGameplayAbilityInputBinds Binds("Confirm", "Cancel", EnumPath, static_cast<int32>(EAbilityInputID::Confirm), static_cast<int32>(EAbilityInputID::Cancel));
+	AbilityComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
+}
+
+void ABaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AbilityComponent->InitAbilityActorInfo(this, this);
+
+	GiveAbilities(); // Only server needs to give abilities
+}
+
+void ABaseCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AbilityComponent->InitAbilityActorInfo(this, this);
+}
+
 void ABaseCharacter::AddMovement(const FInputActionValue& Value)
 {
 	if (!Controller) return;
@@ -82,14 +122,7 @@ void ABaseCharacter::AddMovement(const FInputActionValue& Value)
 
 void ABaseCharacter::Attack()
 {
-	if (Aiming)
-	{
-		RangeAttackComponent->Attack();
-	}
-	else
-	{
-		MeleeAttackComponent->Attack();
-	}
+	Aiming ? RangeAttackComponent->Attack() : MeleeAttackComponent->Attack();
 }
 
 void ABaseCharacter::OnPlayerAiming()
@@ -121,6 +154,18 @@ void ABaseCharacter::OnRep_Aiming()
 	GetCharacterMovement()->MaxWalkSpeed = Aiming ? WalkingSpeed : DefaultSpeed;
 }
 
+void ABaseCharacter::GiveAbilities()
+{
+	if (!HasAuthority() || !AbilityComponent) return;
+
+	for (TSubclassOf<UBaseAbility>& OneAbility : DefaultAbilities)
+	{
+		if (!OneAbility) continue;
+
+		AbilityComponent->GiveAbility(FGameplayAbilitySpec(OneAbility, GetAbilityLevel(), static_cast<int32>(OneAbility.GetDefaultObject()->AbilityInputID), this));
+	}
+}
+
 void ABaseCharacter::Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage)
 {
 	PlayAnimMontage(AnimMontage); 
@@ -145,6 +190,11 @@ float ABaseCharacter::GetMovementDirection() const
 	const auto CrossProduct = FVector::CrossProduct(GetActorForwardVector(), VelocityNormal);
 	const auto Degrees = FMath::RadiansToDegrees(AngleBetween);
 	return CrossProduct.IsZero() ? Degrees : Degrees * FMath::Sign(CrossProduct.Z);
+}
+
+UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
+{
+	return AbilityComponent;
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

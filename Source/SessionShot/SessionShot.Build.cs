@@ -20,8 +20,13 @@ public class SessionShot : ModuleRules
             "SessionShot/Public/Player/Input"
 });
 
-        // Uncomment if you are using Slate UI
-        // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            "Slate",
+            "SlateCore",
+            "GameplayAbilities",
+            "GameplayTags",
+            "GameplayTasks"
+        });
 
         // Uncomment if you are using online features
         // PrivateDependencyModuleNames.Add("OnlineSubsystem");
