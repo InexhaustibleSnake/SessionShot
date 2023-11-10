@@ -51,6 +51,7 @@ ABaseCharacter::ABaseCharacter()
 	float CameraLagSpeed = 12.5f;
 	SpringArmComponent->CameraLagSpeed = CameraLagSpeed;
 
+	GetCharacterMovement()->MaxAcceleration = 1024.0f;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = true;
 
