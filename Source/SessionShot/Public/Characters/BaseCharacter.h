@@ -15,6 +15,9 @@ class UCameraComponent;
 class USpringArmComponent;
 class UAbilityComponent;
 class UBaseAbility;
+class UBaseAttributeSet;
+class UAttributeSet;
+class UGameplayEffect;
 
 UCLASS()
 class SESSIONSHOT_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -41,11 +44,14 @@ public:
 	float GetMovementDirection() const;
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UBaseAttributeSet* GetAttributeSetBase() const;
 
 protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void InitializeAttributes();
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
@@ -81,6 +87,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
+	UBaseAttributeSet* AttributeSet;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
+	TSubclassOf<UGameplayEffect> InitialEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float DefaultSpeed = 600.0f;

@@ -14,6 +14,7 @@
 
 #include "Characters/Components/AbilityComponent.h"
 #include "Characters/Abilities/BaseAbility.h"
+#include "Characters/Components/Attributes/BaseAttributeSet.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -33,6 +34,8 @@ ABaseCharacter::ABaseCharacter()
 	AbilityComponent = CreateDefaultSubobject<UAbilityComponent>("AbilityComponent");
 	AbilityComponent->SetIsReplicated(true);
 	AbilityComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	AttributeSet = CreateDefaultSubobject<UBaseAttributeSet>("AttributeSet");
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
@@ -88,6 +91,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	AbilityComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
 }
 
+
 void ABaseCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -95,6 +99,7 @@ void ABaseCharacter::PossessedBy(AController* NewController)
 	AbilityComponent->InitAbilityActorInfo(this, this);
 
 	GiveAbilities(); // Only server needs to give abilities
+	InitializeAttributes();
 }
 
 void ABaseCharacter::OnRep_PlayerState()
@@ -102,6 +107,21 @@ void ABaseCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	AbilityComponent->InitAbilityActorInfo(this, this);
+	InitializeAttributes();
+}
+
+void ABaseCharacter::InitializeAttributes()
+{
+	if (!AbilityComponent && !InitialEffect) return;
+
+	FGameplayEffectContextHandle EffectContext = AbilityComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle SpecHandle = AbilityComponent->MakeOutgoingSpec(InitialEffect, 1, EffectContext);
+
+	if (!SpecHandle.IsValid()) return;
+
+	AbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
 void ABaseCharacter::AddMovement(const FInputActionValue& Value)
@@ -196,6 +216,11 @@ float ABaseCharacter::GetMovementDirection() const
 UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
 {
 	return AbilityComponent;
+}
+
+UBaseAttributeSet* ABaseCharacter::GetAttributeSetBase() const
+{
+	return AttributeSet;
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
