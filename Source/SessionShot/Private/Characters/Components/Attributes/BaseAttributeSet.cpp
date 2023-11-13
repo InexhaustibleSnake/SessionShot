@@ -19,9 +19,15 @@ void UBaseAttributeSet::OnRep_Concentration(const FGameplayAttributeData& OldCon
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseAttributeSet, Concentration, OldConcentration);
 }
 
+void UBaseAttributeSet::OnRep_MaxConcentration(const FGameplayAttributeData& OldConcentration)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseAttributeSet, MaxConcentration, OldConcentration);
+}
+
 void UBaseAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UBaseAttributeSet, Concentration, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UBaseAttributeSet, MaxConcentration, COND_OwnerOnly);
 }
