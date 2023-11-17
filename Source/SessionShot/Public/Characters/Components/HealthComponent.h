@@ -7,7 +7,6 @@
 #include "HealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SESSIONSHOT_API UHealthComponent : public UActorComponent
@@ -28,9 +27,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnDeath OnDeath;
 
 protected:
 	virtual void BeginPlay() override;

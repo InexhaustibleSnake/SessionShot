@@ -10,5 +10,5 @@ UCLASS()
 class SESSIONSHOT_API UAbilityComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
 };

@@ -43,6 +43,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	float GetMovementDirection() const;
 
+	int32 GetCharacterLevel() const { return 1; }
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UBaseAttributeSet* GetAttributeSetBase() const;
 
@@ -50,11 +52,12 @@ protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PostInitializeComponents() override;
+
 
 	virtual void InitializeAttributes();
 
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_PlayerState() override;
 
 	UFUNCTION(Server, Reliable, Category = "Aiming")
 	void ServerOnPlayerAiming();
@@ -65,34 +68,34 @@ protected:
 
 	virtual void GiveAbilities();
 
-	UFUNCTION()
-	void OnDeath();
-
 	int32 GetAbilityLevel() const { return 1; }
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	UMeleeAttackComponent* MeleeAttackComponent;
+	TObjectPtr<UMeleeAttackComponent> MeleeAttackComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	URangeAttackComponent* RangeAttackComponent;
+	TObjectPtr<URangeAttackComponent> RangeAttackComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	UAbilityComponent* AbilityComponent;
+	TObjectPtr<UAbilityComponent> AbilityComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	UHealthComponent* HealthComponent;
+	TObjectPtr<UHealthComponent> HealthComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	UCameraComponent* MainCamera;
+	TObjectPtr<UCameraComponent> MainCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	USpringArmComponent* SpringArmComponent;
+	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
-	UBaseAttributeSet* AttributeSet;
+	TObjectPtr<UBaseAttributeSet> AttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> InitialEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
+	TArray<TSubclassOf<UBaseAbility>> DefaultAbilities;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float DefaultSpeed = 600.0f;
@@ -111,8 +114,5 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Aim")
 	float NonAimFOV = 90.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
-	TArray<TSubclassOf<UBaseAbility>> DefaultAbilities;
 
 };

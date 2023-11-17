@@ -24,12 +24,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Concentration")
 	FOnConcentrationChanged OnConcentrationChanged;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_Concentration)
-	FGameplayAttributeData Concentration;
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Concentration)
-
-	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_MaxConcentration)
-	FGameplayAttributeData MaxConcentration;
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, MaxConcentration)
 	
 protected:
@@ -42,4 +37,9 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_MaxConcentration(const FGameplayAttributeData& OldConcentration);
 
+	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_Concentration)
+	FGameplayAttributeData Concentration;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_MaxConcentration)
+	FGameplayAttributeData MaxConcentration;
 };

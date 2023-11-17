@@ -34,7 +34,6 @@ void UHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const
 
 	if (IsDead())
 	{
-		OnDeath.Broadcast();
 		ServerKilled_Implementation(InstigatedBy);
 		return;
 	}
