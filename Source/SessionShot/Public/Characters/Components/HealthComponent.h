@@ -4,49 +4,46 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayEffectTypes.h"
+#include "Characters/Components/Attributes/BaseAttributeSet.h"
 #include "HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewHealth);
+class UAbilityComponent;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewHealthPercent);
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SESSIONSHOT_API UHealthComponent : public UActorComponent
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-public:	
-	UHealthComponent();
+public:
+    UHealthComponent();
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetHealthPercent() const { return Health / MaxHealth; }
+    void InitializeWithAbilityComponent(UAbilityComponent* NewAbilityComponent);
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetHealth() const { return Health; }
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    float GetHealthPercent() const { return AttributeSet ? AttributeSet->GetHealth() / AttributeSet->GetMaxHealth() : 0.0f; }
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	bool IsDead() const { return FMath::IsNearlyZero(Health); }
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    float GetHealth() const { return AttributeSet->GetHealth(); }
 
-	UPROPERTY(BlueprintAssignable)
-	FOnHealthChanged OnHealthChanged;
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    bool IsDead() const { return AttributeSet ? FMath::IsNearlyZero(AttributeSet->GetHealth()) : 0.0f; }
+
+    UPROPERTY(BlueprintAssignable)
+    FOnHealthChanged OnHealthChanged;
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    UFUNCTION(Server, Reliable)
+    void ServerKilled(AController* KillerController);
+    void ServerKilled_Implementation(AController* KillerController);
 
-	UFUNCTION(Server, Reliable)
-	virtual void ServerSetHealth(float NewHealth);
-	virtual void ServerSetHealth_Implementation(float NewHealth);
+    void OnHealthChangedAttribute(const FOnAttributeChangeData& ChangeData);
 
-	UFUNCTION()
-	virtual void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+    UPROPERTY()
+    TObjectPtr<UAbilityComponent> AbilityComponent;
 
-	UFUNCTION(Server, Reliable)
-	void ServerKilled(AController* KillerController);
-	void ServerKilled_Implementation(AController* KillerController);
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health")
-	float MaxHealth = 100.0f;
-
-	UPROPERTY(Replicated)
-	float Health;
-
+    UPROPERTY()
+    TObjectPtr<const UBaseAttributeSet> AttributeSet;
 };

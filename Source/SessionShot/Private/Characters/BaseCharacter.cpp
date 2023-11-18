@@ -75,6 +75,8 @@ void ABaseCharacter::BeginPlay()
     CheckActorComponents();
 
     GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
+
+    HealthComponent->InitializeWithAbilityComponent(AbilityComponent);
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

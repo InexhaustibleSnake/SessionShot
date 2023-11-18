@@ -24,10 +24,7 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
         SetNewHealth(GetHealth() - GetIncomingDamage());
-        if (FMath::IsNearlyZero(GetHealth()))
-        {
-            GetOwningActor()->Destroy();
-        }
+  
         SetIncomingDamage(0.0f);
     }
 }
@@ -76,4 +73,6 @@ void UBaseAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
     DOREPLIFETIME_CONDITION(UBaseAttributeSet, Concentration, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UBaseAttributeSet, MaxConcentration, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UBaseAttributeSet, Health, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UBaseAttributeSet, MaxHealth, COND_OwnerOnly);
 }

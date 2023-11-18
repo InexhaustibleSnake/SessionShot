@@ -9,6 +9,7 @@
 class UProjectileMovementComponent;
 class UBoxComponent;
 class UParticleSystemComponent;
+class UGameplayEffect;
 
 UCLASS()
 class SESSIONSHOT_API ABaseProjectile : public AActor
@@ -39,10 +40,10 @@ protected:
 	UParticleSystemComponent* ParticleSystemComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Projectile")
-	float Damage = 10.0f;
-
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Projectile")
 	float ProjectileLifeSpan = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
+    TSubclassOf<UGameplayEffect> ProjectileEffect;
 
 private:
 	FVector ShotDirection;

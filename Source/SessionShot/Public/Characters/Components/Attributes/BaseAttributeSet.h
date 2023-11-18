@@ -60,10 +60,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_MaxConcentration)
 	FGameplayAttributeData MaxConcentration;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Concentration)
+    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
     FGameplayAttributeData Health;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxConcentration)
+    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth)
     FGameplayAttributeData MaxHealth;
 
 private:
