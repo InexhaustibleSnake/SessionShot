@@ -26,10 +26,19 @@ public:
 
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Concentration)
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, MaxConcentration)
+	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Health)
+	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, MaxHealth)
+    ATTRIBUTE_ACCESSORS(UBaseAttributeSet, IncomingDamage)
 	
 protected:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void SetNewHealth(float NewHealth);
+    void SetNewConcentration(float NewConcentration);
 
 	UFUNCTION()
 	virtual void OnRep_Concentration(const FGameplayAttributeData& OldConcentration);
@@ -37,9 +46,28 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_MaxConcentration(const FGameplayAttributeData& OldConcentration);
 
+	UFUNCTION()
+    virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
+
+    UFUNCTION()
+    virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldHealth);
+
+	void ClampAttribute(const FGameplayAttribute Attribute, float NewValue);
+
 	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_Concentration)
 	FGameplayAttributeData Concentration;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_MaxConcentration)
 	FGameplayAttributeData MaxConcentration;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Concentration)
+    FGameplayAttributeData Health;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxConcentration)
+    FGameplayAttributeData MaxHealth;
+
+private:
+	UPROPERTY()
+    FGameplayAttributeData IncomingDamage;
+
 };
