@@ -92,7 +92,7 @@ protected:
 	TObjectPtr<UBaseAttributeSet> AttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
-	TSubclassOf<UGameplayEffect> InitialEffect;
+	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
 	TArray<TSubclassOf<UBaseAbility>> DefaultAbilities;

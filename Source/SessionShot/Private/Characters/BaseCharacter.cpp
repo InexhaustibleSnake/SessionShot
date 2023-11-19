@@ -100,28 +100,31 @@ void ABaseCharacter::PostInitializeComponents()
 
     if (!AbilityComponent) return;
     AbilityComponent->InitAbilityActorInfo(this, this);
+    InitializeAttributes();
 }
 
 void ABaseCharacter::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
-
+    AbilityComponent->InitAbilityActorInfo(this, this);
     GiveAbilities();  // Only server needs to give abilities
-    InitializeAttributes();
 }
 
 void ABaseCharacter::InitializeAttributes()
 {
-    if (!AbilityComponent && !InitialEffect) return;
+    if (!AbilityComponent && !InitialEffects.IsEmpty()) return;
 
     FGameplayEffectContextHandle EffectContext = AbilityComponent->MakeEffectContext();
     EffectContext.AddSourceObject(this);
 
-    FGameplayEffectSpecHandle SpecHandle = AbilityComponent->MakeOutgoingSpec(InitialEffect, GetCharacterLevel(), EffectContext);
+    for (auto InitialEffect : InitialEffects)
+    {
+        FGameplayEffectSpecHandle SpecHandle = AbilityComponent->MakeOutgoingSpec(InitialEffect, GetCharacterLevel(), EffectContext);
 
-    if (!SpecHandle.IsValid()) return;
+        if (!SpecHandle.IsValid()) return;
 
-    AbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+        AbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+    }
 }
 
 void ABaseCharacter::AddMovement(const FInputActionValue& Value)

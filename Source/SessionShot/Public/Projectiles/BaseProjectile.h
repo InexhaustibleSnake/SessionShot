@@ -31,18 +31,18 @@ protected:
 	AController* GetOwnerController() const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Projectile")
-	UProjectileMovementComponent* MovementComponent;
+    TObjectPtr<UProjectileMovementComponent> MovementComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Projectile")
-	UBoxComponent* BoxCollision;
+    TObjectPtr<UBoxComponent> BoxCollision;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Projectile")
-	UParticleSystemComponent* ParticleSystemComponent;
+	TObjectPtr<UParticleSystemComponent> ParticleSystemComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Projectile")
 	float ProjectileLifeSpan = 10.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Attributes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Projectile")
     TSubclassOf<UGameplayEffect> ProjectileEffect;
 
 private:

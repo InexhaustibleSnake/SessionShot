@@ -30,6 +30,8 @@ void UHealthComponent::InitializeWithAbilityComponent(UAbilityComponent* NewAbil
 
     AbilityComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetHealthAttribute())
         .AddUObject(this, &UHealthComponent::OnHealthChangedAttribute);
+
+    OnHealthChanged.Broadcast(GetHealthPercent());
 }
 
 void UHealthComponent::ServerKilled_Implementation(AController* KillerController)
