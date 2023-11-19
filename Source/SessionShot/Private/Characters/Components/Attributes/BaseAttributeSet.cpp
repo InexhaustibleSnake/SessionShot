@@ -43,6 +43,7 @@ void UBaseAttributeSet::SetNewHealth(float NewHealth)
 void UBaseAttributeSet::SetNewConcentration(float NewConcentration)
 {
     SetConcentration(FMath::Clamp(NewConcentration, 0.0f, GetMaxConcentration()));
+    OnRep_Concentration(GetConcentration());
 }
 
 void UBaseAttributeSet::ClampAttribute(const FGameplayAttribute Attribute, float NewValue)
@@ -61,6 +62,7 @@ void UBaseAttributeSet::ClampAttribute(const FGameplayAttribute Attribute, float
 void UBaseAttributeSet::OnRep_Concentration(const FGameplayAttributeData& OldConcentration)
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseAttributeSet, Concentration, OldConcentration);
+    OnConcentrationChanged.Broadcast(GetConcentrationPercent());
 }
 
 void UBaseAttributeSet::OnRep_MaxConcentration(const FGameplayAttributeData& OldConcentration)
