@@ -45,11 +45,9 @@ void ABaseProjectile::BeginPlay()
 void ABaseProjectile::OnProjectileHit(
     UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (!OtherActor) Destroy();
+    if (!OtherActor || !ProjectileEffect) Destroy();
 
     if (OtherActor == GetOwner()) return;
-
-    if (!ProjectileEffect) return;
 
     auto ActorAbilityComponent = OtherActor->FindComponentByClass<UAbilitySystemComponent>();
     if (!ActorAbilityComponent) return;

@@ -11,20 +11,26 @@ void UBaseAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
     ClampAttribute(Attribute, NewValue);
 }
 
-void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) 
+void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
     Super::PostGameplayEffectExecute(Data);
-    
+
     if (Data.EvaluatedData.Attribute == GetConcentrationAttribute())
     {
         SetNewConcentration(GetConcentration());
-        OnConcentrationChanged.Broadcast(GetConcentration());
+        OnConcentrationChanged.Broadcast(GetConcentrationPercent());
+    }
+
+        if (Data.EvaluatedData.Attribute == GetMaxConcentrationAttribute())
+    {
+        SetMaxConcentration(GetMaxConcentration());
+        OnConcentrationChanged.Broadcast(GetConcentrationPercent());
     }
 
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
         SetNewHealth(GetHealth() - GetIncomingDamage());
-  
+
         SetIncomingDamage(0.0f);
     }
 }
@@ -36,7 +42,7 @@ void UBaseAttributeSet::SetNewHealth(float NewHealth)
 
 void UBaseAttributeSet::SetNewConcentration(float NewConcentration)
 {
-    SetHealth(FMath::Clamp(NewConcentration, 0.0f, GetMaxConcentration()));
+    SetConcentration(FMath::Clamp(NewConcentration, 0.0f, GetMaxConcentration()));
 }
 
 void UBaseAttributeSet::ClampAttribute(const FGameplayAttribute Attribute, float NewValue)
@@ -44,6 +50,11 @@ void UBaseAttributeSet::ClampAttribute(const FGameplayAttribute Attribute, float
     if (Attribute == GetHealthAttribute())
     {
         NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
+    }
+
+    if (Attribute == GetConcentrationAttribute())
+    {
+        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxConcentration());
     }
 }
 

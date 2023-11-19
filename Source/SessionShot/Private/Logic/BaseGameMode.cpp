@@ -5,26 +5,26 @@
 
 void ABaseGameMode::CharacterKilled(AController* VictimController, AController* KillerController)
 {
-	const auto VictimState = Cast<ABasePlayerState>(VictimController->PlayerState);
-	if (VictimState) VictimState->AddDeaths();
+    const auto VictimState = Cast<ABasePlayerState>(VictimController->PlayerState);
+    if (VictimState) VictimState->AddDeaths();
 
-	const auto KillerState = Cast<ABasePlayerState>(VictimController->PlayerState);
-	if (KillerState) KillerState->AddKills();
+    const auto KillerState = Cast<ABasePlayerState>(VictimController->PlayerState);
+    if (KillerState) KillerState->AddKills();
 
-	RequestRespawn(VictimController);
+    RequestRespawn(VictimController);
 }
 
 void ABaseGameMode::RequestRespawn(AController* Controller)
 {
-	ResetOnePlayer(Controller);
+    ResetOnePlayer(Controller);
 }
 
 void ABaseGameMode::ResetOnePlayer(AController* Controller)
 {
-	if (Controller && Controller->GetPawn())
-	{
-		Controller->GetPawn()->Reset();
-	}
+    if (Controller && Controller->GetPawn())
+    {
+        Controller->GetPawn()->Reset();
+    }
 
-	RestartPlayer(Controller);
+    RestartPlayer(Controller);
 }

@@ -76,6 +76,7 @@ void ABaseCharacter::BeginPlay()
 
     GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
 
+    InitializeAttributes();
     HealthComponent->InitializeWithAbilityComponent(AbilityComponent);
 }
 
@@ -100,14 +101,14 @@ void ABaseCharacter::PostInitializeComponents()
 
     if (!AbilityComponent) return;
     AbilityComponent->InitAbilityActorInfo(this, this);
+    InitializeAttributes();
 }
 
 void ABaseCharacter::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
-
+    AbilityComponent->InitAbilityActorInfo(this, this);
     GiveAbilities();  // Only server needs to give abilities
-    InitializeAttributes();
 }
 
 void ABaseCharacter::InitializeAttributes()
