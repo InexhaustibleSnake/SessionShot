@@ -76,6 +76,7 @@ void ABaseCharacter::BeginPlay()
 
     GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
 
+    InitializeAttributes();
     HealthComponent->InitializeWithAbilityComponent(AbilityComponent);
 }
 
