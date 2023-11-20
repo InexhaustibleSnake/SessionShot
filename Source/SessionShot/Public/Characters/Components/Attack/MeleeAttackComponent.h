@@ -40,12 +40,15 @@ class SESSIONSHOT_API UMeleeAttackComponent : public UBaseAttackComponent
 public:
     virtual void Attack() override;
 
+    UFUNCTION(BlueprintCallable, Category = "Attack")
+    void ExecuteSpecificAttack(const FAttackData& AttackData);
+
 protected:
     virtual void BeginPlay() override;
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
     UFUNCTION()
-    void MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd);
+    void MakeDamageTrace();
 
     UFUNCTION(Reliable, Server)
     void ApplyDamageToActor(const FHitResult& HitResult);
@@ -68,6 +71,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
     float AttackTraceFrequency = 0.01f;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+    float AttackTraceRadius = 50.0f;
+
     UPROPERTY(Replicated)
     FAttackData CurrentAttackData;
 
@@ -78,7 +84,7 @@ protected:
 
 private:
     FTimerHandle AttackTimer;
-    FTimerDelegate AttackTimerDelegate;
+
 };
 
 template <typename T>

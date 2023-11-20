@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMeleeAttackComponent, All, All);
 
@@ -15,15 +16,10 @@ void UMeleeAttackComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (!GetOwner()) return;
-
     OwnerCharacter = Cast<ABaseCharacter>(GetOwner());
-    if (!OwnerCharacter) return;
 
     if (GetOwner()->HasAuthority())
     {
-        AttackTimerDelegate.BindUFunction(
-            this, FName("MakeDamageTrace"), CurrentAttackData.TraceStartSocket, CurrentAttackData.TraceEndSocket);
         InitAnimations();
     }
 }
@@ -53,21 +49,33 @@ void UMeleeAttackComponent::Attack()
     CurrentAttackIndex = ++CurrentAttackIndex % MaxAttackIndex;
 }
 
-void UMeleeAttackComponent::MakeDamageTrace(const FVector TraceStart, const FVector TraceEnd)
+void UMeleeAttackComponent::ExecuteSpecificAttack(const FAttackData& AttackData)
 {
-    if (!GetOwner()->HasAuthority()) return;
+    if (!GetWorld()) return;
+
+    CurrentAttackData = AttackData;
+
+    GetWorld()->GetTimerManager().SetTimer(AttackTimer, this, &UMeleeAttackComponent::MakeDamageTrace, AttackTraceFrequency, true);
+}
+
+void UMeleeAttackComponent::MakeDamageTrace()
+{
+    if (!GetWorld() || !OwnerCharacter || !OwnerCharacter->HasAuthority()) return;
 
     FHitResult HitResult;
     FCollisionQueryParams CollisionParams;
     CollisionParams.AddIgnoredActor(GetOwner());
 
-    GetWorld()->LineTraceSingleByChannel(HitResult, GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket),
-        GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), ECollisionChannel::ECC_Visibility, CollisionParams);
+    FVector TraceStart = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket);
+    FVector TraceEnd = GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket);
 
-    DrawDebugLine(GetWorld(), GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceStartSocket),
-        GetMeshSocketLocation(OwnerCharacter, CurrentAttackData.TraceEndSocket), FColor::Red, false, 2.0f);
+    FCollisionShape CollisionShape = FCollisionShape::MakeSphere(AttackTraceRadius);
+
+    GetWorld()->SweepSingleByChannel(
+        HitResult, TraceStart, TraceEnd, FQuat::Identity, ECollisionChannel::ECC_Visibility, CollisionShape, CollisionParams);
 
     if (!HitResult.bBlockingHit) return;
+
     ApplyDamageToActor(HitResult);
     OnAttackStateChanged(OwnerCharacter->GetMesh(), EAttackStateTypes::AttackEnd);
 }
@@ -130,7 +138,7 @@ void UMeleeAttackComponent::OnAttackStateChanged(USkeletalMeshComponent* MeshCom
 
     if (StateType == EAttackStateTypes::AttackStart)
     {
-        GetWorld()->GetTimerManager().SetTimer(AttackTimer, AttackTimerDelegate, AttackTraceFrequency, true);
+        GetWorld()->GetTimerManager().SetTimer(AttackTimer, this, &UMeleeAttackComponent::MakeDamageTrace, AttackTraceFrequency, true);
     }
 
     if (StateType == EAttackStateTypes::AttackEnd)
