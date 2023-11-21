@@ -29,6 +29,12 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
     if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
+        if (Invulnerable)
+        {
+            SetIncomingDamage(0.0f);
+            return;
+        }
+
         SetNewHealth(GetHealth() - GetIncomingDamage());
 
         SetIncomingDamage(0.0f);

@@ -27,6 +27,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Concentration")
     float GetConcentrationPercent() const { return GetConcentration() / GetMaxConcentration(); }
 
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    void SetIsInvulnerable(bool IsInvulnerable) const { Invulnerable = IsInvulnerable; }
+
     ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Concentration)
     ATTRIBUTE_ACCESSORS(UBaseAttributeSet, MaxConcentration)
     ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Health)
@@ -69,6 +72,10 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth)
     FGameplayAttributeData MaxHealth;
 
+    UPROPERTY(BlueprintReadOnly, Category = "Health")
+    bool Invulnerable = false;
+
     UPROPERTY(BlueprintReadOnly)
     FGameplayAttributeData IncomingDamage;
+
 };

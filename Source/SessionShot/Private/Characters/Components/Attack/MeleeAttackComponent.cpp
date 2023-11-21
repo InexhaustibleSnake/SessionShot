@@ -8,7 +8,6 @@
 #include "Net/UnrealNetwork.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMeleeAttackComponent, All, All);
 

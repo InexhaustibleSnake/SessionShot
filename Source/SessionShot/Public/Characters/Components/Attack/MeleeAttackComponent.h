@@ -84,7 +84,6 @@ protected:
 
 private:
     FTimerHandle AttackTimer;
-
 };
 
 template <typename T>
