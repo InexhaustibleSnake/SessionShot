@@ -13,62 +13,77 @@ class UParticleSystem;
 USTRUCT(BlueprintType)
 struct FFXData
 {
-	GENERATED_USTRUCT_BODY()
+    GENERATED_USTRUCT_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	USoundCue* SoundShot;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack FX")
+    USoundCue* SoundShot;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	UParticleSystem* CascadeParticle;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack FX")
+    UParticleSystem* CascadeParticle;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	FName ParticleAttachName;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack FX")
+    FName ParticleAttachName = "MuzzleSocket";
+};
 
+USTRUCT(BlueprintType)
+struct FProjectileData
+{
+    GENERATED_USTRUCT_BODY()
+
+public:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
+    TSubclassOf<ABaseProjectile> ProjectileClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
+    FFXData FXData;
 };
 
 UCLASS()
 class SESSIONSHOT_API URangeAttackComponent : public UBaseAttackComponent
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	virtual void Attack() override;
+    virtual void Attack() override;
+
+    UFUNCTION(BlueprintCallable, Category = "Range Attack")
+    void Shoot(const FProjectileData& ProjectileData);
 
 protected:
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	void SpawnProjectile();
+    bool SpawnProjectile(const FProjectileData& ProjectileData);
 
-	void MakeTrace(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd);
+    void MakeTrace(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd);
 
-	bool GetTraceData(FVector& TraceStart, FVector& TraceEnd);
+    bool GetTraceData(FVector& TraceStart, FVector& TraceEnd);
 
-	bool GetPlayerViewPoint(FVector& TraceStart, FRotator& TraceRotation);
+    bool GetPlayerViewPoint(FVector& TraceStart, FRotator& TraceRotation);
 
-	FVector GetMuzzleWorldLocation() const;
+    FVector GetSocketWorldLocation(const FName& SocketName) const;
 
-	UFUNCTION( Category = "FX")
-	void SpawnShotFX();
+    UFUNCTION(Category = "FX")
+    void SpawnShotFX();
 
-	UFUNCTION()
-	void OnRep_BurstCounter();
+    UFUNCTION()
+    void OnRep_BurstCounter();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	float ShootRate = 0.35f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
+    float ShootRate = 0.35f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	float TraceDistance = 20000.0f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
+    float TraceDistance = 20000.0f;
 
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_BurstCounter)
-	int32 BurstCounter; //Currently needed for FX replication
+    UPROPERTY(Transient, ReplicatedUsing = OnRep_BurstCounter)
+    int32 BurstCounter;  // Currently needed for FX replication
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	TSubclassOf<ABaseProjectile> ProjectileType;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
+    FProjectileData DefaultProjectileData;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	FFXData ProjectileFXData;
+    UPROPERTY(Replicated)
+    FFXData CurrentFXData;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
-	FName MuzzleSocketName = "MuzzleSocket";
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Range Attack")
+    FName MuzzleSocketName = "MuzzleSocket";
 };

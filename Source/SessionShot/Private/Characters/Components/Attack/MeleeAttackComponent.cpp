@@ -27,7 +27,7 @@ void UMeleeAttackComponent::Attack()
 {
     Super::Attack();
 
-    if (!GetOwner()->HasAuthority()) return;
+    if (!GetOwner()->HasAuthority() || !CanAttack) return;
 
     if (ComboAttackMap.IsEmpty())
     {

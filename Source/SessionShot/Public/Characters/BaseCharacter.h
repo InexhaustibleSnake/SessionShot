@@ -43,10 +43,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	float GetMovementDirection() const;
 
-	int32 GetCharacterLevel() const { return 1; }
-
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UBaseAttributeSet* GetAttributeSetBase() const;
+
+	int32 GetCharacterLevel() const { return 1; }
+    int32 GetAbilityLevel() const { return 1; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -67,8 +68,6 @@ protected:
 	void OnRep_Aiming();
 
 	virtual void GiveAbilities();
-
-	int32 GetAbilityLevel() const { return 1; }
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UMeleeAttackComponent> MeleeAttackComponent;

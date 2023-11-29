@@ -45,17 +45,35 @@ void ABaseProjectile::BeginPlay()
 void ABaseProjectile::OnProjectileHit(
     UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (!OtherActor || !ProjectileEffect) Destroy();
-
-    if (OtherActor == GetOwner()) return;
+    if (!OtherActor || OtherActor == GetOwner() || !ProjectileEffect) 
+    {
+        Destroy();
+        return;
+    }
 
     auto ActorAbilityComponent = OtherActor->FindComponentByClass<UAbilitySystemComponent>();
-    if (!ActorAbilityComponent) return;
+    if (!ActorAbilityComponent)
+    {
+        Destroy();
+        return;
+    }
 
     FGameplayEffectContextHandle EffectContext = ActorAbilityComponent->MakeEffectContext();
     EffectContext.AddSourceObject(this);
 
+    if (!EffectContext.IsValid())
+    {
+        Destroy();
+        return;
+    }
+
     FGameplayEffectSpecHandle SpecHandle = ActorAbilityComponent->MakeOutgoingSpec(ProjectileEffect, 1, EffectContext);
+
+    if (!SpecHandle.IsValid())
+    {
+        Destroy();
+        return;
+    }
 
     ActorAbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 

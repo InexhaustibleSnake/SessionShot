@@ -23,7 +23,8 @@ ABaseCharacter::ABaseCharacter()
     PrimaryActorTick.bCanEverTick = false;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
-    SpringArmComponent->SetupAttachment(GetMesh());
+    FName SpringArmAttachmentName = "head";
+    SpringArmComponent->SetupAttachment(GetMesh(), SpringArmAttachmentName);
 
     MainCamera = CreateDefaultSubobject<UCameraComponent>("MainCamera");
     MainCamera->SetupAttachment(SpringArmComponent);
@@ -41,10 +42,6 @@ ABaseCharacter::ABaseCharacter()
 
     SpringArmComponent->bUsePawnControlRotation = true;
     SpringArmComponent->TargetArmLength = 350.0f;
-
-    FVector SpringArmComponentLocation;
-    SpringArmComponentLocation.Set(0.0f, 0.0f, 180.0f);
-    SpringArmComponent->SetWorldLocation(SpringArmComponentLocation);
 
     FVector SpringArmSocketOffset;
     SpringArmSocketOffset.Set(0.0f, 50.0f, 0.0f);

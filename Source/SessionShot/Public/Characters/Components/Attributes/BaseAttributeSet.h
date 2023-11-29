@@ -73,7 +73,7 @@ protected:
     FGameplayAttributeData MaxHealth;
 
     UPROPERTY(BlueprintReadOnly, Category = "Health")
-    bool Invulnerable = false;
+    mutable bool Invulnerable = false;
 
     UPROPERTY(BlueprintReadOnly)
     FGameplayAttributeData IncomingDamage;

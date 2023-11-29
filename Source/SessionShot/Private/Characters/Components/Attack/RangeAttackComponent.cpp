@@ -9,107 +9,120 @@
 
 void URangeAttackComponent::Attack()
 {
-	Super::Attack();
+    Super::Attack();
 
-	++BurstCounter;
-	OnRep_BurstCounter();
+    if (!CanAttack) return;
 
-	if (!GetOwner()->HasAuthority()) return;
-
-	SpawnProjectile();
+    Shoot(DefaultProjectileData);
 }
 
-void URangeAttackComponent::SpawnProjectile()
+void URangeAttackComponent::Shoot(const FProjectileData& ProjectileData)
 {
-	if (!GetWorld()) return;
+    if (!GetOwner()->HasAuthority()) return;
 
-	FVector TraceStart, TraceEnd;
-	if (!GetTraceData(TraceStart, TraceEnd)) return;
+    if (!SpawnProjectile(ProjectileData)) return;
 
-	FHitResult HitResult;
+    CurrentFXData = ProjectileData.FXData;
 
-	MakeTrace(HitResult, TraceStart, TraceEnd);
+    ++BurstCounter;
+    OnRep_BurstCounter();
+}
 
-	const FVector EndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : TraceEnd;
-	const FVector Direction = (EndPoint - GetMuzzleWorldLocation()).GetSafeNormal();
+bool URangeAttackComponent::SpawnProjectile(const FProjectileData& ProjectileData)
+{
+    if (!GetWorld() || !ProjectileData.ProjectileClass) return false;
 
-	const FTransform SpawnTransform(FRotator::ZeroRotator, GetMuzzleWorldLocation());
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd)) return false;
 
-	auto SpawnedProjectile = GetWorld()->SpawnActorDeferred<ABaseProjectile>(ProjectileType, SpawnTransform);
-	if (SpawnedProjectile)
-	{
-		SpawnedProjectile->SetShotDirection(Direction);
-		SpawnedProjectile->SetOwner(GetOwner());
-		SpawnedProjectile->FinishSpawning(SpawnTransform);
-	}
+    FHitResult HitResult;
+
+    MakeTrace(HitResult, TraceStart, TraceEnd);
+
+    const FVector EndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : TraceEnd;
+    const FVector Direction = (EndPoint - GetSocketWorldLocation(MuzzleSocketName)).GetSafeNormal();
+
+    const FTransform SpawnTransform(FRotator::ZeroRotator, GetSocketWorldLocation(MuzzleSocketName));
+
+    auto SpawnedProjectile = GetWorld()->SpawnActorDeferred<ABaseProjectile>(ProjectileData.ProjectileClass, SpawnTransform);
+    if (!SpawnedProjectile) return false;
+
+    SpawnedProjectile->SetShotDirection(Direction);
+    SpawnedProjectile->SetOwner(GetOwner());
+    SpawnedProjectile->FinishSpawning(SpawnTransform);
+
+    return true;
 }
 
 bool URangeAttackComponent::GetTraceData(FVector& TraceStart, FVector& TraceEnd)
 {
-	FVector ViewLocation;
-	FRotator ViewRotation;
+    FVector ViewLocation;
+    FRotator ViewRotation;
 
-	if (!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
+    if (!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
 
-	FVector ShootDirection = ViewRotation.Vector();
+    FVector ShootDirection = ViewRotation.Vector();
 
-	TraceStart = ViewLocation;
-	TraceEnd = TraceStart + ShootDirection * TraceDistance;
+    TraceStart = ViewLocation;
+    TraceEnd = TraceStart + ShootDirection * TraceDistance;
 
-	return true;
+    return true;
 }
 
 bool URangeAttackComponent::GetPlayerViewPoint(FVector& TraceStart, FRotator& TraceRotation)
 {
-	if (!GetOwner()) return false;
+    if (!GetOwner()) return false;
 
-	const auto Pawn = Cast<APawn>(GetOwner());
-	if (!Pawn) return false;
+    const auto Pawn = Cast<APawn>(GetOwner());
+    if (!Pawn) return false;
 
-	const auto PawnController = Pawn->GetController();
-	if (!PawnController) return false;
+    const auto PawnController = Pawn->GetController();
+    if (!PawnController) return false;
 
-	PawnController->GetPlayerViewPoint(TraceStart, TraceRotation);
+    PawnController->GetPlayerViewPoint(TraceStart, TraceRotation);
 
-	return true;
+    return true;
 }
 
 void URangeAttackComponent::MakeTrace(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd)
 {
-	if (!GetWorld()) return;
+    if (!GetWorld()) return;
 
-	FCollisionQueryParams CollisionQueryParams;
-	CollisionQueryParams.AddIgnoredActor(GetOwner());
+    FCollisionQueryParams CollisionQueryParams;
+    CollisionQueryParams.AddIgnoredActor(GetOwner());
 
-	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionQueryParams);
+    GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionQueryParams);
 }
 
-FVector URangeAttackComponent::GetMuzzleWorldLocation() const
+FVector URangeAttackComponent::GetSocketWorldLocation(const FName& SocketName) const
 {
-	if (!GetOwner()) return FVector::ZeroVector;
+    if (!GetOwner()) return FVector::ZeroVector;
 
-	const auto CharacterMesh = GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
+    const auto CharacterMesh = GetOwner()->GetComponentByClass<USkeletalMeshComponent>();
 
-	return CharacterMesh ? CharacterMesh->GetSocketLocation(MuzzleSocketName) : FVector::ZeroVector;
+    return CharacterMesh ? CharacterMesh->GetSocketLocation(SocketName) : FVector::ZeroVector;
 }
 
 void URangeAttackComponent::SpawnShotFX()
 {
-	auto OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (!OwnerCharacter || !OwnerCharacter->GetMesh()) return;
+    auto OwnerCharacter = Cast<ACharacter>(GetOwner());
+    if (!OwnerCharacter || !OwnerCharacter->GetMesh()) return;
 
-	UGameplayStatics::SpawnEmitterAttached(ProjectileFXData.CascadeParticle, OwnerCharacter->GetMesh(), ProjectileFXData.ParticleAttachName);
+    UGameplayStatics::SpawnEmitterAttached(CurrentFXData.CascadeParticle, OwnerCharacter->GetMesh(), CurrentFXData.ParticleAttachName);
 }
 
 void URangeAttackComponent::OnRep_BurstCounter()
 {
-	if (GetNetMode() != ENetMode::NM_DedicatedServer)
-	{
-		SpawnShotFX();
-	}
+    if (GetNetMode() != ENetMode::NM_DedicatedServer)
+    {
+        SpawnShotFX();
+    }
 }
 
 void URangeAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	DOREPLIFETIME_CONDITION(URangeAttackComponent, BurstCounter, COND_SkipOwner);
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(URangeAttackComponent, BurstCounter);
+    DOREPLIFETIME(URangeAttackComponent, CurrentFXData);
 }

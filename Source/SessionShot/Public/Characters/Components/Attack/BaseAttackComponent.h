@@ -16,11 +16,16 @@ public:
 
 	virtual void Attack();
 
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+    void SetCanOwnerAttack(bool CanOwnerAttack) { CanAttack = CanOwnerAttack; }
+
 protected:
 	virtual void BeginPlay() override;
 		
 	UFUNCTION(Server, Reliable)
 	virtual void Server_Attack();
 	virtual void Server_Attack_Implementation();
+
+	bool CanAttack = true;
 
 };
