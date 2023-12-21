@@ -11,16 +11,18 @@
 #include "Characters/Components/Attack/MeleeAttackComponent.h"
 #include "Characters/Components/Attack/RangeAttackComponent.h"
 #include "Characters/Components/HealthComponent.h"
+#include "Components/TimelineComponent.h"
 
 #include "Characters/Components/AbilityComponent.h"
 #include "Characters/Abilities/BaseAbility.h"
 #include "Characters/Components/Attributes/BaseAttributeSet.h"
+#include "Curves/CurveFloat.h"
 
 #include "Net/UnrealNetwork.h"
 
 ABaseCharacter::ABaseCharacter()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
     FName SpringArmAttachmentName = "head";
@@ -41,7 +43,7 @@ ABaseCharacter::ABaseCharacter()
     HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 
     SpringArmComponent->bUsePawnControlRotation = true;
-    SpringArmComponent->TargetArmLength = 350.0f;
+    SpringArmComponent->TargetArmLength = NonAimSpringArmLenght;
 
     FVector SpringArmSocketOffset;
     SpringArmSocketOffset.Set(0.0f, 50.0f, 0.0f);
@@ -75,6 +77,29 @@ void ABaseCharacter::BeginPlay()
 
     InitializeAttributes();
     HealthComponent->InitializeWithAbilityComponent(AbilityComponent);
+
+    if (IsLocallyControlled())
+    {
+        FOnTimelineFloat SpringArmUpdate;
+        SpringArmUpdate.BindUFunction(this, FName("ChangeSpringArmLength"));
+
+        AimingTimeline.AddInterpFloat(AimingCurve, SpringArmUpdate);
+        AimingTimeline.SetLooping(false);
+        AimingTimeline.SetTimelineLength(1.0f);
+        AimingTimeline.SetPlayRate(AimingTime);
+    }
+}
+
+void ABaseCharacter::Tick(float DeltaTime) 
+{
+    Super::Tick(DeltaTime);
+
+    AimingTimeline.TickTimeline(DeltaTime);
+}
+
+void ABaseCharacter::ChangeSpringArmLength(float Alpha)
+{
+    SpringArmComponent->TargetArmLength = FMath::Lerp(NonAimSpringArmLenght, AimSpringArmLenght, Alpha);
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -159,9 +184,7 @@ void ABaseCharacter::OnPlayerAiming()
 
     if (IsLocallyControlled())
     {
-        const auto PlayerController = Cast<APlayerController>(GetController());
-        if (!PlayerController) return;
-        PlayerController->PlayerCameraManager->SetFOV(Aiming ? AimFOV : NonAimFOV);
+        Aiming ? AimingTimeline.Play() : AimingTimeline.Reverse();
     }
 }
 
