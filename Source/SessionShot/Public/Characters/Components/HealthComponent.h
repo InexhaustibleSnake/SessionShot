@@ -35,9 +35,8 @@ public:
     FOnHealthChanged OnHealthChanged;
 
 protected:
-    UFUNCTION(Server, Reliable)
-    void ServerKilled(AController* KillerController);
-    void ServerKilled_Implementation(AController* KillerController);
+    UFUNCTION()
+    void OnDeath(AController* KillerController);
 
     void OnHealthChangedAttribute(const FOnAttributeChangeData& ChangeData);
 

@@ -8,6 +8,7 @@
 #include "BaseAttributeSet.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConcentrationChanged, float, NewConcentrationPercent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AController*, KillerController);
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName)                                                                                       \
     GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName)                                                                             \
@@ -23,6 +24,9 @@ class SESSIONSHOT_API UBaseAttributeSet : public UAttributeSet
 public:
     UPROPERTY(BlueprintAssignable, Category = "Concentration")
     FOnConcentrationChanged OnConcentrationChanged;
+
+    UPROPERTY(BlueprintAssignable, Category = "Health")
+    mutable FOnDeath OnDeath;
 
     UFUNCTION(BlueprintCallable, Category = "Concentration")
     float GetConcentrationPercent() const { return GetConcentration() / GetMaxConcentration(); }

@@ -89,6 +89,7 @@ void UMeleeAttackComponent::ApplyDamageToActor_Implementation(const FHitResult& 
 
     FGameplayEffectContextHandle EffectContext = ActorAbilityComponent->MakeEffectContext();
     EffectContext.AddSourceObject(GetOwner());
+    EffectContext.AddInstigator(GetOwnerController(), GetOwner());
 
     FGameplayEffectSpecHandle SpecHandle =
         ActorAbilityComponent->MakeOutgoingSpec(CurrentAttackData.AttackEffect, CurrentAttackData.AttackEffectLevel, EffectContext);

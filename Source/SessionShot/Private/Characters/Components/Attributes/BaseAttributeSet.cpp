@@ -21,7 +21,7 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
         OnConcentrationChanged.Broadcast(GetConcentrationPercent());
     }
 
-        if (Data.EvaluatedData.Attribute == GetMaxConcentrationAttribute())
+    if (Data.EvaluatedData.Attribute == GetMaxConcentrationAttribute())
     {
         SetMaxConcentration(GetMaxConcentration());
         OnConcentrationChanged.Broadcast(GetConcentrationPercent());
@@ -38,6 +38,15 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
         SetNewHealth(GetHealth() - GetIncomingDamage());
 
         SetIncomingDamage(0.0f);
+    }
+
+    if (FMath::IsNearlyZero(GetHealth()))
+    {
+        const auto EffectContext = Data.EffectSpec.GetEffectContext();
+
+        const auto KillerController = Cast<AController>(EffectContext.GetInstigator());
+
+        OnDeath.Broadcast(KillerController);
     }
 }
 

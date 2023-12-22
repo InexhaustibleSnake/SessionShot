@@ -9,19 +9,25 @@
 UCLASS()
 class SESSIONSHOT_API ABasePlayerState : public APlayerState
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	void AddKills() { ++KillsNum; }
-	UFUNCTION(BlueprintCallable, Category = "Player Data")
-	int32 GetKills() { return KillsNum; }
+    void AddKills() { ++KillsNum; }
 
-	void AddDeaths() { ++DeathsNum; }
-	UFUNCTION(BlueprintCallable, Category = "Player Data")
-	int32 GetDeaths() { return DeathsNum; }
+    UFUNCTION(BlueprintCallable, Category = "Player Data")
+    int32 GetKills() { return KillsNum; }
 
-private:
-	int32 KillsNum = 0;
-	int32 DeathsNum = 0;
+    void AddDeaths() { ++DeathsNum; }
 
+    UFUNCTION(BlueprintCallable, Category = "Player Data")
+    int32 GetDeaths() { return DeathsNum; }
+
+protected:
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+    UPROPERTY(Transient, Replicated, BlueprintReadWrite, Category = "Player Data")
+    int32 KillsNum = 0;
+
+    UPROPERTY(Transient, Replicated, BlueprintReadWrite, Category = "Player Data")
+    int32 DeathsNum = 0;
 };

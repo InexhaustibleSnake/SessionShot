@@ -24,17 +24,26 @@ void UHealthComponent::InitializeWithAbilityComponent(UAbilityComponent* NewAbil
 
     AbilityComponent = NewAbilityComponent;
 
+    AbilityComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetHealthAttribute())
+        .AddUObject(this, &UHealthComponent::OnHealthChangedAttribute);
+
     AttributeSet = NewAbilityComponent->GetSet<UBaseAttributeSet>();
 
     if (!AttributeSet) return;
 
-    AbilityComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetHealthAttribute())
-        .AddUObject(this, &UHealthComponent::OnHealthChangedAttribute);
+    AttributeSet->OnDeath.AddDynamic(this, &UHealthComponent::OnDeath);
+    
+    OnHealthChanged.Broadcast(GetHealthPercent());
+}
+
+void UHealthComponent::OnHealthChangedAttribute(const FOnAttributeChangeData& ChangeData)
+{
+    float NewHealth = ChangeData.NewValue;
 
     OnHealthChanged.Broadcast(GetHealthPercent());
 }
 
-void UHealthComponent::ServerKilled_Implementation(AController* KillerController)
+void UHealthComponent::OnDeath(AController* KillerController) 
 {
     if (!GetWorld()) return;
 
@@ -45,16 +54,4 @@ void UHealthComponent::ServerKilled_Implementation(AController* KillerController
     const auto OwnerController = OwnerCharacter ? OwnerCharacter->GetController() : nullptr;
 
     GameMode->CharacterKilled(OwnerController, KillerController);
-}
-
-void UHealthComponent::OnHealthChangedAttribute(const FOnAttributeChangeData& ChangeData)
-{
-    float NewHealth = ChangeData.NewValue;
-
-    OnHealthChanged.Broadcast(GetHealthPercent());
-
-    if (FMath::IsNearlyZero(NewHealth))
-    {
-        ServerKilled(nullptr);
-    }
 }

@@ -60,6 +60,7 @@ void ABaseProjectile::OnProjectileHit(
 
     FGameplayEffectContextHandle EffectContext = ActorAbilityComponent->MakeEffectContext();
     EffectContext.AddSourceObject(this);
+    EffectContext.AddInstigator(GetOwnerController(), this);
 
     if (!EffectContext.IsValid())
     {

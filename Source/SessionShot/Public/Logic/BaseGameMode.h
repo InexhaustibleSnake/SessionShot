@@ -9,14 +9,13 @@
 UCLASS()
 class SESSIONSHOT_API ABaseGameMode : public AGameModeBase
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	void CharacterKilled(AController* VictimController, AController* KillerController);
+    void CharacterKilled(AController* VictimController, AController* KillerController);
 
 protected:
-	void RequestRespawn(AController* Controller);
+    void RequestRespawn(AController* Controller);
 
-	void ResetOnePlayer(AController* Controller);
-
+    void ResetOnePlayer(AController* Controller);
 };

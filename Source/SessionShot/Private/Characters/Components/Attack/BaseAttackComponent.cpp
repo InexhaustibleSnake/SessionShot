@@ -5,28 +5,30 @@
 
 UBaseAttackComponent::UBaseAttackComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-	
-	SetComponentTickEnabled(false);
+    PrimaryComponentTick.bCanEverTick = false;
 
-	SetIsReplicatedByDefault(true);
-}
+    SetComponentTickEnabled(false);
 
-void UBaseAttackComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
+    SetIsReplicatedByDefault(true);
 }
 
 void UBaseAttackComponent::Attack()
 {
-	if (!GetOwner()->HasAuthority())
-	{
-		Server_Attack();
-	}
+    if (!GetOwner()->HasAuthority())
+    {
+        Server_Attack();
+    }
 }
 
 void UBaseAttackComponent::Server_Attack_Implementation()
 {
-	Attack();
+    Attack();
+}
+
+AController* UBaseAttackComponent::GetOwnerController() const
+{
+    const auto OwnerPawn = Cast<APawn>(GetOwner());
+    if (!OwnerPawn) return nullptr;
+
+    return OwnerPawn->GetController();
 }
