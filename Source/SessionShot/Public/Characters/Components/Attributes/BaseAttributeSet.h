@@ -8,6 +8,7 @@
 #include "BaseAttributeSet.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConcentrationChanged, float, NewConcentrationPercent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewConcentrationPercent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AController*, KillerController);
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName)                                                                                       \
@@ -30,6 +31,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Concentration")
     float GetConcentrationPercent() const { return GetConcentration() / GetMaxConcentration(); }
+    
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    float GetHealthPercent() const { return GetHealth() / GetMaxHealth(); }
 
     UFUNCTION(BlueprintCallable, Category = "Health")
     void SetIsInvulnerable(bool IsInvulnerable) const { Invulnerable = IsInvulnerable; }

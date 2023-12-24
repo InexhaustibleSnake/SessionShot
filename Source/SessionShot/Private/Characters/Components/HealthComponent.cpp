@@ -22,25 +22,11 @@ void UHealthComponent::InitializeWithAbilityComponent(UAbilityComponent* NewAbil
 {
     if (!NewAbilityComponent || NewAbilityComponent == AbilityComponent) return;
 
-    AbilityComponent = NewAbilityComponent;
-
-    AbilityComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetHealthAttribute())
-        .AddUObject(this, &UHealthComponent::OnHealthChangedAttribute);
-
     AttributeSet = NewAbilityComponent->GetSet<UBaseAttributeSet>();
 
     if (!AttributeSet) return;
 
     AttributeSet->OnDeath.AddDynamic(this, &UHealthComponent::OnDeath);
-    
-    OnHealthChanged.Broadcast(GetHealthPercent());
-}
-
-void UHealthComponent::OnHealthChangedAttribute(const FOnAttributeChangeData& ChangeData)
-{
-    float NewHealth = ChangeData.NewValue;
-
-    OnHealthChanged.Broadcast(GetHealthPercent());
 }
 
 void UHealthComponent::OnDeath(AController* KillerController) 
