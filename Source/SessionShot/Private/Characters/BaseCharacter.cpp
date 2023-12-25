@@ -18,6 +18,12 @@
 #include "Characters/Components/Attributes/BaseAttributeSet.h"
 #include "Curves/CurveFloat.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
+#include "Player/Input/CharacterInputData.h"
+#include "EnhancedInput/Public/EnhancedInputComponent.h"
+
 #include "Net/UnrealNetwork.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -66,11 +72,14 @@ ABaseCharacter::ABaseCharacter()
     GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
     NetUpdateFrequency = 100.0f;  // Character needs to be updated at a high frequency.
+
+    SetupInput();
 }
 
 void ABaseCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
     CheckActorComponents();
 
     GetCharacterMovement()->MaxWalkSpeed = DefaultSpeed;
@@ -90,7 +99,7 @@ void ABaseCharacter::BeginPlay()
     }
 }
 
-void ABaseCharacter::Tick(float DeltaTime) 
+void ABaseCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
@@ -102,11 +111,54 @@ void ABaseCharacter::ChangeSpringArmLength(float Alpha)
     SpringArmComponent->TargetArmLength = FMath::Lerp(NonAimSpringArmLenght, AimSpringArmLenght, Alpha);
 }
 
+void ABaseCharacter::SetupInput()
+{
+    if (!InputActions)
+    {
+        static ConstructorHelpers::FObjectFinder<UCharacterInputData> DA_PlayerInput(
+            TEXT("/Script/SessionShot.CharacterInputData'/Game/SessionShot/Player/Input/DA_CharacterInput.DA_CharacterInput'"));
+
+        if (DA_PlayerInput.Succeeded()) InputActions = DA_PlayerInput.Object;
+    }
+
+    if (!InputMapping)
+    {
+        static ConstructorHelpers::FObjectFinder<UInputMappingContext> IA_InputMapping(
+            TEXT("/Script/EnhancedInput.InputMappingContext'/Game/SessionShot/Player/Input/IMC_Main.IMC_Main'"));
+
+        if (IA_InputMapping.Succeeded()) InputMapping = IA_InputMapping.Object;
+    }
+}
+
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    if (!AbilityComponent || !InputComponent) return;
+    if (!InputComponent || !InputActions || !InputMapping) return;
+
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (!PlayerController) return;
+
+    UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem =
+        ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+
+    if (!EnhancedInputSubsystem) return;
+
+    EnhancedInputSubsystem->ClearAllMappings();
+    EnhancedInputSubsystem->AddMappingContext(InputMapping, 0);
+
+    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+
+    EnhancedInputComponent->BindAction(InputActions->Movement, ETriggerEvent::Triggered, this, &ABaseCharacter::AddMovement);
+
+    EnhancedInputComponent->BindAction(InputActions->Jump, ETriggerEvent::Triggered, this, &ABaseCharacter::Jump);
+
+    EnhancedInputComponent->BindAction(InputActions->Attack, ETriggerEvent::Started, this, &ABaseCharacter::Attack);
+
+    EnhancedInputComponent->BindAction(InputActions->Aim, ETriggerEvent::Started, this, &ABaseCharacter::OnPlayerAiming);
+    EnhancedInputComponent->BindAction(InputActions->Aim, ETriggerEvent::Completed, this, &ABaseCharacter::OnPlayerAiming);
+
+    if (!AbilityComponent) return;
 
     FTopLevelAssetPath EnumPath = FTopLevelAssetPath(FName("/Script/SessionShot"), FName("EAbilityInputID"));
 
@@ -172,25 +224,25 @@ void ABaseCharacter::Attack()
     Aiming ? RangeAttackComponent->Attack() : MeleeAttackComponent->Attack();
 }
 
-void ABaseCharacter::OnPlayerAiming()
+void ABaseCharacter::OnPlayerAiming(const FInputActionValue& Value)
 {
-    if (!HasAuthority())
-    {
-        ServerOnPlayerAiming();
-    }
-
     Aiming = !Aiming;
     OnRep_Aiming();
-
+    
     if (IsLocallyControlled())
     {
         Aiming ? AimingTimeline.Play() : AimingTimeline.Reverse();
     }
+
+    if (!HasAuthority())
+    {
+        ServerOnPlayerAiming(Value);
+    }
 }
 
-void ABaseCharacter::ServerOnPlayerAiming_Implementation()
+void ABaseCharacter::ServerOnPlayerAiming_Implementation(const FInputActionValue& Value)
 {
-    OnPlayerAiming();
+    OnPlayerAiming(Value);
 }
 
 void ABaseCharacter::OnRep_Aiming()

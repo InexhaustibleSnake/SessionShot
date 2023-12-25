@@ -10,39 +10,20 @@
 
 void AMainPlayerController::SetupInputComponent()
 {
-	Super::SetupInputComponent();
-	if (!InputComponent || !GetLocalPlayer()) return;
+    Super::SetupInputComponent();
+    if (!InputComponent || !GetLocalPlayer()) return;
 
-	UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+    UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem =
+        ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 
-	if (!EnhancedInputSubsystem) return;
+    if (!EnhancedInputSubsystem) return;
 
-	EnhancedInputSubsystem->ClearAllMappings();
-	EnhancedInputSubsystem->AddMappingContext(InputMapping, 0);
+    EnhancedInputSubsystem->ClearAllMappings();
+    EnhancedInputSubsystem->AddMappingContext(InputMapping, 0);
 
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
-	
-	EnhancedInputComponent->BindAction(InputActions->Turn, ETriggerEvent::Triggered, this, &AMainPlayerController::AddControlInput);
-	EnhancedInputComponent->BindAction(InputActions->Movement, ETriggerEvent::Triggered, this, &AMainPlayerController::AddMovementInput);
+    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
 
-	EnhancedInputComponent->BindAction(InputActions->Jump, ETriggerEvent::Triggered, this, &AMainPlayerController::Jump);
-
-	EnhancedInputComponent->BindAction(InputActions->Attack, ETriggerEvent::Started, this, &AMainPlayerController::Attack);
-	
-	EnhancedInputComponent->BindAction(InputActions->Aim, ETriggerEvent::Started, this, &AMainPlayerController::Aim);
-	EnhancedInputComponent->BindAction(InputActions->Aim, ETriggerEvent::Completed, this, &AMainPlayerController::Aim);
-}
-
-void AMainPlayerController::OnPossess(APawn* aPawn)
-{
-	Super::OnPossess(aPawn);
-}
-
-ABaseCharacter* AMainPlayerController::GetPossessedCharacter() const
-{
-	if (!GetPawn()) return nullptr;
-
-	return Cast<ABaseCharacter>(GetPawn());
+    EnhancedInputComponent->BindAction(InputActions->Turn, ETriggerEvent::Triggered, this, &AMainPlayerController::AddControlInput);
 }
 
 void AMainPlayerController::AddControlInput(const FInputActionValue& Value)
@@ -51,34 +32,4 @@ void AMainPlayerController::AddControlInput(const FInputActionValue& Value)
 
 	AddPitchInput(ControlVector.Y);
 	AddYawInput(ControlVector.X);
-}
-
-void AMainPlayerController::AddMovementInput(const FInputActionValue& Value)
-{
-	if (!GetPossessedCharacter()) return;
-
-	FVector2D ControlVector = Value.Get<FVector2D>();
-
-	GetPossessedCharacter()->AddMovement(Value);
-}
-
-void AMainPlayerController::Attack(const FInputActionValue& Value)
-{
-	if (!GetPossessedCharacter()) return;
-
-	GetPossessedCharacter()->Attack();
-}
-
-void AMainPlayerController::Jump(const FInputActionValue& Value)
-{
-	if (!GetPossessedCharacter()) return;
-
-	GetPossessedCharacter()->Jump();
-}
-
-void AMainPlayerController::Aim(const FInputActionValue& Value)
-{
-	if (!GetPossessedCharacter()) return;
-
-	GetPossessedCharacter()->OnPlayerAiming();
 }

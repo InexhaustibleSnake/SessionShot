@@ -20,6 +20,8 @@ class UBaseAttributeSet;
 class UAttributeSet;
 class UGameplayEffect;
 class UCurveFloat;
+class UInputMappingContext;
+class UCharacterInputData;
 
 UCLASS()
 class SESSIONSHOT_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -34,7 +36,7 @@ public:
     virtual void Attack();
 
     UFUNCTION()
-    void OnPlayerAiming();
+    void OnPlayerAiming(const FInputActionValue& Value);
 
     UFUNCTION(BlueprintCallable, Category = "Aim")
     bool IsAiming() const { return Aiming; }
@@ -66,8 +68,8 @@ protected:
     virtual void PossessedBy(AController* NewController) override;
 
     UFUNCTION(Server, Reliable, Category = "Aiming")
-    void ServerOnPlayerAiming();
-    void ServerOnPlayerAiming_Implementation();
+    void ServerOnPlayerAiming(const FInputActionValue& Value);
+    void ServerOnPlayerAiming_Implementation(const FInputActionValue& Value);
 
     UFUNCTION()
     void OnRep_Aiming();
@@ -76,6 +78,8 @@ protected:
 
     UFUNCTION()
     void ChangeSpringArmLength(float Alpha);
+
+    void SetupInput();
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
     TObjectPtr<UMeleeAttackComponent> MeleeAttackComponent;
@@ -104,6 +108,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Abilities")
     TArray<TSubclassOf<UBaseAbility>> DefaultAbilities;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Control")
+    UInputMappingContext* InputMapping;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Control")
+    UCharacterInputData* InputActions;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
     float DefaultSpeed = 600.0f;
 
@@ -130,5 +140,4 @@ protected:
 
 private:
     FTimeline AimingTimeline;
-
 };
