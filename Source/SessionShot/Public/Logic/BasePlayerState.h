@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Logic/GameModeData.h"
 #include "BasePlayerState.generated.h"
 
 UCLASS()
@@ -22,6 +23,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Player Data")
     int32 GetDeaths() { return DeathsNum; }
 
+    void SetTeamType(ETeamsType NewTeamType) { TeamType = NewTeamType; }
+    ETeamsType GetTeamType() const { return TeamType; }
+
 protected:
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
@@ -30,4 +34,7 @@ protected:
 
     UPROPERTY(Transient, Replicated, BlueprintReadWrite, Category = "Player Data")
     int32 DeathsNum = 0;
+
+    UPROPERTY(Transient, Replicated, BlueprintReadWrite, Category = "Player Data")
+    ETeamsType TeamType = ETeamsType::Digamma;
 };
