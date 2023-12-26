@@ -8,7 +8,7 @@ void ABaseGameMode::StartPlay()
 {
     Super::StartPlay();
 
-    CreateTeams();
+    CreateTeams(); // TO DO: At the moment, the distribution of players by team does not work. We need to add several game states, such as the beginning and end of the game
 }
 
 void ABaseGameMode::CharacterKilled(AController* VictimController, AController* KillerController)
@@ -45,7 +45,7 @@ void ABaseGameMode::ResetOnePlayer(AController* Controller)
 
 void ABaseGameMode::CreateTeams()
 {
-    if (!GetWorld() || GameModeData.TeamsInGame.IsEmpty());
+    if (!GetWorld() || GameModeData.TeamsInGame.IsEmpty()) return;
 
     ETeamsType TeamType = ETeamsType::Digamma;
 

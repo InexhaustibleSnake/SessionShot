@@ -68,6 +68,10 @@ protected:
 
     void ClampAttribute(const FGameplayAttribute Attribute, float NewValue);
 
+    bool AreEnemies(const AController* Controller1, const AController* Controller2) const;
+
+    AController* GetOwnerController() const;
+
     UPROPERTY(BlueprintReadOnly, Category = "Concentration", ReplicatedUsing = OnRep_Concentration)
     FGameplayAttributeData Concentration;
 

@@ -3,6 +3,8 @@
 #include "Characters/Components/Attributes/BaseAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "Player/MainPlayerController.h"
+#include "Logic/BasePlayerState.h"
 
 void UBaseAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
@@ -34,6 +36,14 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
             SetIncomingDamage(0.0f);
             return;
         }
+
+        const auto EffectOwnerController = Cast<AController>(Data.EffectSpec.GetEffectContext().GetInstigator());
+
+      /*if (!AreEnemies(GetOwnerController(), EffectOwnerController))
+        {
+            SetIncomingDamage(0.0f);
+            return;
+        }*/ // TO DO: The code works completely, you need to uncomment it when the distribution by commands works
 
         SetNewHealth(GetHealth() - GetIncomingDamage());
 
@@ -72,6 +82,24 @@ void UBaseAttributeSet::ClampAttribute(const FGameplayAttribute Attribute, float
     {
         NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxConcentration());
     }
+}
+
+bool UBaseAttributeSet::AreEnemies(const AController* Controller1, const AController* Controller2) const
+{
+    if (!Controller1 || !Controller2 || Controller1 == Controller2) return false;
+
+    const auto PlayerState1 = Cast<ABasePlayerState>(Controller1->PlayerState);
+    const auto PlayerState2 = Cast<ABasePlayerState>(Controller2->PlayerState);
+
+    return PlayerState1 && PlayerState2 && PlayerState1->GetTeamType() != PlayerState2->GetTeamType();
+}
+
+AController* UBaseAttributeSet::GetOwnerController() const
+{
+    const auto OwnerPawn = Cast<APawn>(GetOwningActor());
+    if (!OwnerPawn) return nullptr;
+
+    return OwnerPawn->GetController();
 }
 
 void UBaseAttributeSet::OnRep_Concentration(const FGameplayAttributeData& OldConcentration)

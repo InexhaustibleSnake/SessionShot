@@ -14,7 +14,6 @@ public class SessionShot : ModuleRules
 {
             "SessionShot/Public",
             "SessionShot/Public/Characters/Components",
-            "SessionShot/Public/Characters/Animations",
             "SessionShot/Public/Logic",
             "SessionShot/Public/Player",
             "SessionShot/Public/Player/Input"
