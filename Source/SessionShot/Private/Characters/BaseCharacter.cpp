@@ -86,6 +86,17 @@ void ABaseCharacter::BeginPlay()
 
     InitializeAttributes();
     HealthComponent->InitializeWithAbilityComponent(AbilityComponent);
+
+    if (AimingCurve)
+    {
+        FOnTimelineFloat SpringArmUpdate;
+        SpringArmUpdate.BindUFunction(this, FName("ChangeSpringArmLength"));
+
+        AimingTimeline.AddInterpFloat(AimingCurve, SpringArmUpdate);
+        AimingTimeline.SetLooping(false);
+        AimingTimeline.SetTimelineLength(1.0f);
+        AimingTimeline.SetPlayRate(AimingTime);
+    }
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -172,17 +183,6 @@ void ABaseCharacter::PossessedBy(AController* NewController)
     Super::PossessedBy(NewController);
     AbilityComponent->InitAbilityActorInfo(this, this);
     GiveAbilities();  // Only server needs to give abilities
-
-    if (IsLocallyControlled() && AimingCurve)
-    {
-        FOnTimelineFloat SpringArmUpdate;
-        SpringArmUpdate.BindUFunction(this, FName("ChangeSpringArmLength"));
-
-        AimingTimeline.AddInterpFloat(AimingCurve, SpringArmUpdate);
-        AimingTimeline.SetLooping(false);
-        AimingTimeline.SetTimelineLength(1.0f);
-        AimingTimeline.SetPlayRate(AimingTime);
-    }
 }
 
 void ABaseCharacter::InitializeAttributes()
@@ -196,7 +196,7 @@ void ABaseCharacter::InitializeAttributes()
     {
         FGameplayEffectSpecHandle SpecHandle = AbilityComponent->MakeOutgoingSpec(InitialEffect, GetCharacterLevel(), EffectContext);
 
-        if (!SpecHandle.IsValid()) return;
+        if (!SpecHandle.IsValid()) continue;
 
         AbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
     }
@@ -234,10 +234,7 @@ void ABaseCharacter::OnPlayerAiming(const FInputActionValue& Value)
         Aiming ? AimingTimeline.Play() : AimingTimeline.Reverse();
     }
 
-    if (!HasAuthority())
-    {
-        ServerOnPlayerAiming(Value);
-    }
+    if (!HasAuthority()) ServerOnPlayerAiming(Value);
 }
 
 void ABaseCharacter::ServerOnPlayerAiming_Implementation(const FInputActionValue& Value)
