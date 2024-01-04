@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// The project was made by Alexey Guchmazov Ilich (Inexhaustible Snake) for educational purposes
 
 #include "SessionShot.h"
 #include "Modules/ModuleManager.h"

@@ -39,11 +39,11 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
         const auto EffectOwnerController = Cast<AController>(Data.EffectSpec.GetEffectContext().GetInstigator());
 
-      /*if (!AreEnemies(GetOwnerController(), EffectOwnerController))
+        if (!AreEnemies(GetOwnerController(), EffectOwnerController))
         {
             SetIncomingDamage(0.0f);
             return;
-        }*/ // TO DO: The code works completely, you need to uncomment it when the distribution by commands works
+        }
 
         SetNewHealth(GetHealth() - GetIncomingDamage());
 

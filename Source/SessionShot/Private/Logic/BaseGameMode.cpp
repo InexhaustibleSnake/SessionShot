@@ -3,12 +3,34 @@
 #include "Logic/BaseGameMode.h"
 #include "Logic/BasePlayerState.h"
 #include "Logic/GameModeData.h"
+#include "Logic/SessionShotPlayerStart.h"
+#include "Engine.h"
 
-void ABaseGameMode::StartPlay()
+ABaseGameMode::ABaseGameMode()
 {
-    Super::StartPlay();
+    bUseSeamlessTravel = true;
+}
 
-    CreateTeams(); // TO DO: At the moment, the distribution of players by team does not work. We need to add several game states, such as the beginning and end of the game
+void ABaseGameMode::BeginPlay()
+{
+    Super::BeginPlay();
+    TimerDelegateInProgress.BindUFunction(this, FName("SetGameMatchState"), FName("InProgress"));
+
+    if (!GetWorld()) return;
+
+    GetWorldTimerManager().SetTimer(MatchTimer, TimerDelegateInProgress, GameModeData.GameModeMatchTimeData.WaitingToStartTime, false);
+}
+
+bool ABaseGameMode::ReadyToStartMatch_Implementation()
+{
+    return GetMatchState() == FName("InProgress");
+}
+
+void ABaseGameMode::HandleMatchHasStarted()
+{
+    CreateTeams();
+
+    Super::HandleMatchHasStarted();
 }
 
 void ABaseGameMode::CharacterKilled(AController* VictimController, AController* KillerController)
@@ -26,6 +48,36 @@ void ABaseGameMode::CharacterKilled(AController* VictimController, AController* 
     }
 
     RequestRespawn(VictimController);
+}
+
+AActor* ABaseGameMode::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
+{
+    if (!GetWorld()) return nullptr;
+
+    if (CachedPlayerStarts.IsEmpty())
+    {
+        for (TActorIterator<ASessionShotPlayerStart> ReceivedPlayerStart(GetWorld()); ReceivedPlayerStart; ++ReceivedPlayerStart)
+        {
+            CachedPlayerStarts.Add(*ReceivedPlayerStart);
+        }
+    }
+
+    const auto PlayerController = Cast<APlayerController>(Player);
+    if (!PlayerController) return nullptr;
+
+    const auto PlayerState = Cast<ABasePlayerState>(PlayerController->PlayerState);
+    if (!PlayerState) return nullptr;
+
+    TArray<ASessionShotPlayerStart*> AvaiblePlayerStarts;
+
+    for (ASessionShotPlayerStart* OnePlayerStart : CachedPlayerStarts)
+    {
+        if (OnePlayerStart && PlayerState->GetTeamType() == OnePlayerStart->GetTeamType()) AvaiblePlayerStarts.Add(OnePlayerStart);
+    }
+
+    if (AvaiblePlayerStarts.IsEmpty()) return nullptr;
+
+    return AvaiblePlayerStarts[FMath::RandRange(0, AvaiblePlayerStarts.Num() - 1)];
 }
 
 void ABaseGameMode::RequestRespawn(AController* Controller)
@@ -61,4 +113,9 @@ void ABaseGameMode::CreateTeams()
 
         TeamType = TeamType == ETeamsType::Digamma ? ETeamsType::Heta : ETeamsType::Digamma;
     }
+}
+
+void ABaseGameMode::SetGameMatchState(FName StateName)
+{
+    SetMatchState(StateName);
 }

@@ -3,6 +3,12 @@
 #include "Logic/BasePlayerState.h"
 #include "Net/UnrealNetwork.h"
 
+void ABasePlayerState::SetPlayerCharacterClass(const TSubclassOf<ABaseCharacter> NewPlayerCharacterClass) 
+{
+    if (!NewPlayerCharacterClass) return;
+    PlayerCharacterClass = NewPlayerCharacterClass;
+}
+
 void ABasePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -10,4 +16,5 @@ void ABasePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(ABasePlayerState, KillsNum);
     DOREPLIFETIME(ABasePlayerState, DeathsNum);
     DOREPLIFETIME(ABasePlayerState, TeamType);
+    DOREPLIFETIME(ABasePlayerState, PlayerCharacterClass);
 }

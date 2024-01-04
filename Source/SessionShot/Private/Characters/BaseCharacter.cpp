@@ -86,17 +86,6 @@ void ABaseCharacter::BeginPlay()
 
     InitializeAttributes();
     HealthComponent->InitializeWithAbilityComponent(AbilityComponent);
-
-    if (IsLocallyControlled())
-    {
-        FOnTimelineFloat SpringArmUpdate;
-        SpringArmUpdate.BindUFunction(this, FName("ChangeSpringArmLength"));
-
-        AimingTimeline.AddInterpFloat(AimingCurve, SpringArmUpdate);
-        AimingTimeline.SetLooping(false);
-        AimingTimeline.SetTimelineLength(1.0f);
-        AimingTimeline.SetPlayRate(AimingTime);
-    }
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -183,6 +172,17 @@ void ABaseCharacter::PossessedBy(AController* NewController)
     Super::PossessedBy(NewController);
     AbilityComponent->InitAbilityActorInfo(this, this);
     GiveAbilities();  // Only server needs to give abilities
+
+    if (IsLocallyControlled() && AimingCurve)
+    {
+        FOnTimelineFloat SpringArmUpdate;
+        SpringArmUpdate.BindUFunction(this, FName("ChangeSpringArmLength"));
+
+        AimingTimeline.AddInterpFloat(AimingCurve, SpringArmUpdate);
+        AimingTimeline.SetLooping(false);
+        AimingTimeline.SetTimelineLength(1.0f);
+        AimingTimeline.SetPlayRate(AimingTime);
+    }
 }
 
 void ABaseCharacter::InitializeAttributes()
@@ -228,7 +228,7 @@ void ABaseCharacter::OnPlayerAiming(const FInputActionValue& Value)
 {
     Aiming = !Aiming;
     OnRep_Aiming();
-    
+
     if (IsLocallyControlled())
     {
         Aiming ? AimingTimeline.Play() : AimingTimeline.Reverse();
